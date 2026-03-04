@@ -6,7 +6,6 @@
       "description": "SQLite database path",
       "validation": "z.string()",
       "side": "server",
-      "mapTo": "url",
       "default": "sqlite.db"
     }
   },

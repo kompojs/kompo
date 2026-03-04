@@ -16,7 +16,7 @@
     "tailwind-merge": "catalog:",
     "next-themes": "catalog:",
     "@radix-ui/react-slot": "catalog:",
-    "@<%= it.scope %>/ui": "workspace:*",
+    "@<%= it.scope %>/ui-<%= it.family %>": "workspace:*",
     "@<%= it.scope %>/config": "workspace:*"
   },
   "devDependencies": {

@@ -1,0 +1,14 @@
+{
+  "description": "Default Vue + Vite application with Tailwind CSS",
+  "steps": [
+    {
+      "command": "add",
+      "type": "app",
+      "name": "web",
+      "driver": "vue",
+      "designSystem": "tailwind"
+    }
+  ],
+  "name": "Blank",
+  "id": "vue.tailwind.blank"
+}

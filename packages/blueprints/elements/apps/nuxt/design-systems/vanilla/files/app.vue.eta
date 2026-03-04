@@ -1,0 +1,102 @@
+<script setup lang="ts">
+import { Play, BookOpen, Puzzle, SquareTerminal, Rocket, ArrowUpRight } from 'lucide-vue-next'
+</script>
+
+<template>
+  <div class="app-container">
+    <%~ await it.hook('demo-container') %>
+    <%~ await it.hook('app-content') %>
+    <% if (!it.hooks?.['app-content']) { %>
+    <div class="welcome-page">
+      <div class="welcome-content">
+        <!-- Logo + Title -->
+        <h1 class="welcome-title">
+          <NuxtLink to="<%= it.branding.url %>" target="_blank" class="logo-link" rel="noopener">
+            <span class="logo-icon"><%~ it.branding.horizontalLogo %></span>
+            <span class="app-name-badge">{{ <%= it.getEnv('NUXT_PUBLIC_APP_NAME') %> }}</span>
+          </NuxtLink>
+        </h1>
+
+        <!-- Cards Row 1: Get Started (span 2) + Documentation -->
+        <div class="cards-row cards-row-top">
+          <!-- Get Started Card (wide) -->
+          <div class="card card-primary card-wide">
+            <div class="card-icon-box">
+              <Play :size="18" />
+            </div>
+            <h2 class="card-heading"><%= it.texts.features.getStarted.title %></h2>
+            <p class="card-text"><%= it.texts.features.getStarted.description %></p>
+          </div>
+
+          <!-- Documentation Card -->
+          <NuxtLink to="<%= it.texts.features.docs.url %>" target="_blank" rel="noopener" class="card card-link">
+            <div class="card-icon-box">
+              <BookOpen :size="18" />
+            </div>
+            <span class="card-arrow"><ArrowUpRight :size="16" /></span>
+            <h2 class="card-heading"><%= it.texts.features.docs.title %></h2>
+            <p class="card-text"><%= it.texts.features.docs.description %></p>
+          </NuxtLink>
+        </div>
+
+        <div class="cards-row cards-row-bottom">
+          <NuxtLink to="<%= it.texts.features.blueprints.url %>" target="_blank" rel="noopener" class="card card-link">
+            <div class="card-icon-box">
+              <Puzzle :size="18" />
+            </div>
+            <span class="card-arrow"><ArrowUpRight :size="16" /></span>
+            <h2 class="card-heading"><%= it.texts.features.blueprints.title %></h2>
+            <p class="card-text"><%= it.texts.features.blueprints.description %></p>
+          </NuxtLink>
+
+          <NuxtLink to="<%= it.texts.features.examples.url %>" target="_blank" rel="noopener" class="card card-link">
+            <div class="card-icon-box">
+              <SquareTerminal :size="18" />
+            </div>
+            <span class="card-arrow"><ArrowUpRight :size="16" /></span>
+            <h2 class="card-heading"><%= it.texts.features.examples.title %></h2>
+            <p class="card-text"><%= it.texts.features.examples.description %></p>
+          </NuxtLink>
+
+          <NuxtLink to="<%= it.texts.features.deploy.url %>" target="_blank" rel="noopener" class="card card-link">
+            <div class="card-icon-box">
+              <Rocket :size="18" />
+            </div>
+            <span class="card-arrow"><ArrowUpRight :size="16" /></span>
+            <h2 class="card-heading"><%= it.texts.features.deploy.title %></h2>
+            <p class="card-text"><%= it.texts.features.deploy.description %></p>
+          </NuxtLink>
+        </div>
+
+        <!-- Footer -->
+        <footer class="welcome-footer">
+          <ul class="social-links">
+            <li>
+              <NuxtLink to="<%= it.socialLinks.github %>" target="_blank" rel="noopener" class="social-link" title="GitHub">
+                <span class="sr-only">Kompo GitHub</span>
+                <span class="social-icon"><%~ it.socialIcons.github %></span>
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="<%= it.socialLinks.twitter %>" target="_blank" rel="noopener" class="social-link" title="X">
+                <span class="sr-only">Kompo on X</span>
+                <span class="social-icon"><%~ it.socialIcons.x %></span>
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="<%= it.socialLinks.farcaster %>" target="_blank" rel="noopener" class="social-link" title="Farcaster">
+                <span class="sr-only">Kompo Farcaster</span>
+                <span class="social-icon"><%~ it.socialIcons.farcaster %></span>
+              </NuxtLink>
+            </li>
+          </ul>
+        </footer>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</template>
+
+<style scoped>
+@import "~/assets/css/main.css";
+</style>

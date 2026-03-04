@@ -1,0 +1,10 @@
+/**
+ * Server Composition Root
+ * 
+ * This file wires server-side adapters and services.
+ * Used in Nuxt server routes and API handlers.
+ */
+
+<%~ await it.hook('server-imports') %>
+<%~ await it.hook('server-instances') %>
+<%~ await it.hook('server-exports') %>

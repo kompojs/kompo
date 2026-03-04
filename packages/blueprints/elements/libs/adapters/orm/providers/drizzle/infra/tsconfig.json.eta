@@ -1,9 +1,4 @@
 {
   "extends": "<%= it.tsconfigPath %>",
-  "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": ".",
-    "incremental": true
-  },
   "include": ["src", "drizzle.config.ts"]
 }

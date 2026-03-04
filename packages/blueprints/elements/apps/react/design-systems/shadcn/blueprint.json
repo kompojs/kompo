@@ -1,0 +1,15 @@
+{
+  "id": "shadcn",
+  "name": "Shadcn UI",
+  "type": "design-system",
+  "description": "Shadcn UI design system for Vite",
+  "framework": "react",
+  "env": {
+    "VITE_SHADCN_THEME": {
+      "validation": "z.string()",
+      "default": "zinc",
+      "side": "client",
+      "description": "Shadcn UI color theme"
+    }
+  }
+}

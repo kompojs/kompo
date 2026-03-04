@@ -1,47 +1,6 @@
-import { createEnvFactory, z } from '@kompo/config/client'
-import type { InferEnvSchema } from '@kompo/config'
-import { nextClientSchema, viteClientSchema } from './schema'
-
-export { z }
-
 /**
- * Universal client environment factory for shared config
+ * Client-side environment utilities.
+ * Each app defines its own env.ts with Zod validation.
+ * This module re-exports z for backward compatibility.
  */
-const factory = createEnvFactory({
-  schemas: {
-    vite: viteClientSchema,
-    nextjs: nextClientSchema,
-  },
-  // Use global process.env or import.meta.env depending on context
-  runtimeEnv: {
-    ...(typeof process !== 'undefined' ? process.env : {}),
-    ...(typeof import.meta !== 'undefined' ? (import.meta as any).env : {}),
-  },
-})
-
-// Export the shared helper
-export const getClientEnv = factory.getClientEnv
-
-/**
- * Helper for Lazy Validation
- * Prevents crashing app A if schemas for app B are missing (but unused).
- */
-function createLazyEnv<T extends Record<string, any>>(type: 'nextjs' | 'vite'): T {
-  let env: any
-  return new Proxy(
-    {},
-    {
-      get(_target, prop) {
-        if (!env) env = factory.getClientEnv(type)
-        return env[prop]
-      },
-      // Optional: Add traps for inspection if needed, but 'get' is enough for runtime safety
-    }
-  ) as T
-}
-
-/**
- * Framework-specific exports with Lazy Validation.
- */
-export const nextEnv = createLazyEnv<Readonly<InferEnvSchema<typeof nextClientSchema>>>('nextjs')
-export const viteEnv = createLazyEnv<Readonly<InferEnvSchema<typeof viteClientSchema>>>('vite')
+export { z } from '@kompo/config'

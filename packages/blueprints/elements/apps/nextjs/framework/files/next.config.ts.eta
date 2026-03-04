@@ -1,0 +1,24 @@
+import { loadEnv } from '@<%= it.scope %>/config/loader'
+import type { NextConfig } from 'next'
+import { clientSchema } from './src/env'
+
+// 1. Load environment variables using the shared helper
+loadEnv()
+
+// 2. Dynamically map all client-side variables from our schema
+const nextEnv = Object.keys(clientSchema.shape).reduce(
+  (acc, key) => {
+    acc[key] = process.env[key]
+    return acc
+  },
+  {} as Record<string, string | undefined>
+)
+
+const nextConfig: NextConfig = {
+  reactStrictMode: true,
+  // Inject the mapped variables into the build
+  env: nextEnv,
+  transpilePackages: ['@<%= it.scope %>/config', '@<%= it.scope %>/ui-<%= it.family %>', '@kompo/config'],
+}
+
+export default nextConfig

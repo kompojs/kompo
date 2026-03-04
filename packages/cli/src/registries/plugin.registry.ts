@@ -10,7 +10,7 @@ export interface KompoPluginRegistry extends PluginRegistry {
   ): void
   getPlugins(): KompoPlugin[]
   getPlugin(name: string): KompoPlugin | undefined
-  getPluginsForCommand(command: 'new' | 'add'): KompoPlugin[]
+  getPluginsForCommand(command: 'add'): KompoPlugin[]
   getSteps(): Step[]
   getQuestions(): Question[]
   getTemplates(): TemplateDefinition[]
@@ -80,7 +80,7 @@ export function createPluginRegistry(): KompoPluginRegistry {
       return plugins.get(name)
     },
 
-    getPluginsForCommand(command: 'new' | 'add'): KompoPlugin[] {
+    getPluginsForCommand(command: 'add'): KompoPlugin[] {
       return Array.from(plugins.values()).filter((p) => p.supports.includes(command))
     },
 

@@ -1,5 +1,6 @@
 import path from 'node:path'
-import type { FrameworkId } from '@kompo/kit'
+import type { FrameworkId } from '@kompo/config/constants'
+import type { ObjectLiteralExpression } from 'ts-morph'
 import { Project, SyntaxKind } from 'ts-morph'
 import { createFsEngine } from '../engine/fs-engine'
 
@@ -46,29 +47,55 @@ export async function injectEnvVariables(repoRoot: string, envEntry: string) {
 }
 
 /**
- * Injects a snippet of environment variables into libs/config/{server|client}.ts
- * Uses ts-morph for safer AST manipulation and strict conflict checking.
- * Also automatically appends keys to .env and .env.example
+ * Injects environment variable schemas into the appropriate file:
+ * - Server vars → libs/config/src/schema.ts (serverSchema object literal)
+ * - Client vars → apps/<name>/src/env.ts (z.object() call argument)
  *
- * @param envContent - Optional explicit env content to skip comment parsing
+ * Uses ts-morph for AST manipulation. Also appends keys to .env/.env.example.
+ *
+ * @param repoRoot - The root directory of the repository
+ * @param snippet - Object literal properties to inject (e.g. "KEY: z.string(),")
+ * @param target - 'server' | 'react' | 'vue' | 'nextjs' | 'nuxt'
+ * @param envContent - Optional explicit env content for .env files
+ * @param appDir - Required for client targets. The app directory (e.g. /repo/apps/web)
  */
 export async function injectEnvSnippet(
   repoRoot: string,
   snippet: string,
   target: FrameworkId | 'server' = 'server',
-  envContent?: string
+  envContent?: string,
+  appDir?: string
 ) {
-  const configPath = path.join(repoRoot, 'libs', 'config', 'src', 'schema.ts')
-  const schemaVarName =
-    target === 'server'
-      ? 'serverSchema'
-      : target === 'vite'
-        ? 'viteClientSchema'
-        : 'nextClientSchema'
+  const isClient = target !== 'server'
+
+  // Determine target file and schema variable
+  let targetPath: string
+  let schemaVarName: string
+
+  if (isClient) {
+    if (!appDir) {
+      console.warn(
+        '⚠️  injectEnvSnippet: appDir required for client env injection, skipping schema injection'
+      )
+      // Still inject .env variables into app dir if known
+      if (envContent) await injectEnvVariables(appDir || repoRoot, envContent)
+      return
+    }
+    targetPath = path.join(appDir, 'src', 'env.ts')
+    schemaVarName = 'clientSchema'
+  } else {
+    targetPath = path.join(repoRoot, 'libs', 'config', 'src', 'server.ts')
+    schemaVarName = 'serverSchema'
+  }
 
   const fs = createFsEngine()
 
-  if (!(await fs.fileExists(configPath))) return
+  if (!(await fs.fileExists(targetPath))) {
+    // env.ts will be created by the template engine during framework scaffolding.
+    // Just inject .env variables if provided.
+    if (envContent) await injectEnvVariables(isClient && appDir ? appDir : repoRoot, envContent)
+    return
+  }
 
   // Initialize ts-morph project
   const project = new Project({
@@ -76,24 +103,36 @@ export async function injectEnvSnippet(
     skipAddingFilesFromTsConfig: true,
   })
 
-  // Add config file to project
-  const sourceFile = project.addSourceFileAtPath(configPath)
+  // Add target file to project
+  const sourceFile = project.addSourceFileAtPath(targetPath)
 
   // Find the schema variable declaration
   const varDec = sourceFile.getVariableDeclaration(schemaVarName)
 
   if (!varDec) {
-    throw new Error(`Could not find ${schemaVarName} declaration in schema.ts`)
+    throw new Error(`Could not find ${schemaVarName} declaration in ${targetPath}`)
   }
 
-  // Get the object literal initializer
-  const objectLiteral = varDec.getInitializerIfKind(SyntaxKind.ObjectLiteralExpression)
+  // Get the object literal — for server it's a plain object, for client it's inside z.object()
+  let objectLiteral: ObjectLiteralExpression | undefined
+  if (isClient) {
+    // clientSchema = z.object({ ... }) — get the argument of z.object()
+    const callExpr = varDec.getInitializerIfKind(SyntaxKind.CallExpression)
+    if (callExpr) {
+      const args = callExpr.getArguments()
+      if (args.length > 0 && args[0].isKind(SyntaxKind.ObjectLiteralExpression)) {
+        objectLiteral = args[0]
+      }
+    }
+  } else {
+    objectLiteral = varDec.getInitializerIfKind(SyntaxKind.ObjectLiteralExpression)
+  }
+
   if (!objectLiteral) {
-    throw new Error(`${schemaVarName} initializer must be an object literal`)
+    throw new Error(`${schemaVarName} initializer must contain an object literal in ${targetPath}`)
   }
 
   // Parse the snippet to extract keys for conflict checking
-  // We use a dummy source file to parse the snippet
   const tempFile = project.createSourceFile(
     `temp_${Date.now()}.ts`,
     `const temp = {\n${snippet}\n}`
@@ -114,12 +153,11 @@ export async function injectEnvSnippet(
     if (prop.isKind(SyntaxKind.PropertyAssignment)) {
       const keyName = prop.getName()
 
-      // Skip if it already exists (check manually to be robust)
-      const exists = objectLiteral.getProperties().some((p) => {
+      // Skip if it already exists
+      const exists = objectLiteral.getProperties().some((p: any) => {
         if (p.isKind(SyntaxKind.SpreadAssignment)) return false
 
         let name = p.getName()
-        // Handle quoted names if necessary (though getName() usually handles it)
         if (
           (name.startsWith("'") && name.endsWith("'")) ||
           (name.startsWith('"') && name.endsWith('"'))
@@ -133,7 +171,6 @@ export async function injectEnvSnippet(
         continue
       }
 
-      // If NO explicit envContent is provided, we default to empty value
       if (!envContent) {
         validKeys.push(`${keyName}=`)
       }
@@ -146,16 +183,32 @@ export async function injectEnvSnippet(
   }
 
   if (structureToInject.length > 0) {
-    // Apply changes to Config File
     objectLiteral.addPropertyAssignments(structureToInject)
+
+    // For Next.js/Nuxt apps: also inject static process.env.KEY entries into runtimeEnv
+    // so the framework can inline public env vars at build time in client components.
+    if (target === 'nextjs' || target === 'nuxt') {
+      const runtimeEnvDec = sourceFile.getVariableDeclaration('runtimeEnv')
+      const runtimeEnvObj = runtimeEnvDec?.getInitializerIfKind(SyntaxKind.ObjectLiteralExpression)
+      if (runtimeEnvObj) {
+        const runtimeEntries = structureToInject.map((s) => ({
+          name: s.name,
+          initializer: `process.env.${s.name}`,
+        }))
+        runtimeEnvObj.addPropertyAssignments(runtimeEntries)
+      }
+    }
+
     await sourceFile.save()
   }
 
   // Inject keys into .env and .env.example
+  // Client vars go to app dir, server vars go to repo root
+  const envDir = isClient && appDir ? appDir : repoRoot
   if (envContent) {
-    await injectEnvVariables(repoRoot, envContent)
+    await injectEnvVariables(envDir, envContent)
   } else if (validKeys.length > 0) {
     const envBlock = validKeys.join('\n')
-    await injectEnvVariables(repoRoot, envBlock)
+    await injectEnvVariables(envDir, envBlock)
   }
 }

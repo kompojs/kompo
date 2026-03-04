@@ -4,7 +4,7 @@
   "version": 1,
   "type": "app",
   "category": "web3",
-  "framework": "vite",
+  "framework": "react",
   "features": ["web3"],
   "tags": ["nextjs", "web3", "events", "ponder", "bullmq"],
   "id": "events-listener"

@@ -136,7 +136,7 @@
         "profileId": { "type": "string" },
         "framework": {
           "type": "string",
-          "enum": ["nextjs", "vite", "express"]
+          "enum": ["nextjs", "react", "vue", "nuxt", "express"]
         },
         "designSystem": {
           "type": "string",
@@ -188,7 +188,7 @@
         },
         "driver": {
           "type": "string",
-          "description": "Driver/provider used (e.g., 'nextjs', 'vite')"
+          "description": "Driver/provider used (e.g., 'nextjs', 'react')"
         },
         "app": {
           "type": "string",

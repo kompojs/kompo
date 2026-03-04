@@ -3,21 +3,23 @@
   "version": "0.1.3-beta.6",
   "private": true,
   "type": "module",
-  "main": "./index.ts",
-  "types": "./index.ts",
   "exports": {
     ".": "./index.ts",
     "./client": "./client.ts",
     "./server": "./server.ts",
-    "./loader": "./loader.ts"
+    "./loader": "./loader.ts",
+    "./constants": "./constants.ts"
   },
+  "main": "./index.ts",
+  "types": "./index.ts",
   "scripts": {
+    "clean": "rimraf .turbo node_modules tsconfig.tsbuildinfo",
     "format": "prettier --write \"*.{ts,js,json}\"",
     "format:check": "prettier --check \"*.{ts,js,json}\"",
-    "clean": "rimraf .turbo node_modules tsconfig.tsbuildinfo"
+    "test": "vitest run -c ../vitest.config.ts --passWithNoTests",
+    "test:coverage": "vitest run -c ../vitest.config.ts --coverage --passWithNoTests"
   },
   "dependencies": {
-    "@kompo/kit": "workspace:*",
     "@t3-oss/env-core": "^0.11.1",
     "dotenv": "^16.4.5",
     "zod": "^3.22.4"

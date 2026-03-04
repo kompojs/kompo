@@ -30,7 +30,10 @@ interface FrameworkPaths {
 /**
  * Get framework-specific paths for demos and providers
  */
-export function getFrameworkPaths(targetDir: string, framework: 'nextjs' | 'vite'): FrameworkPaths {
+export function getFrameworkPaths(
+  targetDir: string,
+  framework: 'nextjs' | 'react'
+): FrameworkPaths {
   if (framework === 'nextjs') {
     return {
       demosDir: path.join(targetDir, 'src', 'components', 'demos'),
@@ -49,7 +52,7 @@ export function getFrameworkPaths(targetDir: string, framework: 'nextjs' | 'vite
 /**
  * Detect the framework from kompo.config.json
  */
-export async function detectFramework(ctx: KompoContext): Promise<'nextjs' | 'vite'> {
+export async function detectFramework(ctx: KompoContext): Promise<'nextjs' | 'react'> {
   const repoRoot = path.dirname(path.dirname(ctx.targetDir))
   const config = readKompoConfig(repoRoot)
 
@@ -58,7 +61,7 @@ export async function detectFramework(ctx: KompoContext): Promise<'nextjs' | 'vi
   // Find the app config for current targetDir
   for (const [appPath, appConfig] of Object.entries(config.apps)) {
     if (ctx.targetDir.includes(appPath)) {
-      return appConfig.framework as 'nextjs' | 'vite'
+      return appConfig.framework as 'nextjs' | 'react'
     }
   }
 

@@ -10,7 +10,8 @@ import './doctor/checks/forbidden-imports.check'
 import './doctor/checks/ports-adapters.check'
 import './doctor/checks/config-sync.check'
 import { confirm, isCancel } from '@clack/prompts'
-import { FRAMEWORKS, readKompoConfig, writeKompoConfig } from '@kompo/kit'
+import { FRAMEWORKS } from '@kompo/config/constants'
+import { readKompoConfig, writeKompoConfig } from '@kompo/kit'
 import { getApps, getDomains } from '../utils/project'
 
 // Helper to flatten results
@@ -134,7 +135,7 @@ export function createDoctorCommand(_registry: KompoPluginRegistry): Command {
                   createdAt: new Date().toISOString(),
                   updatedAt: new Date().toISOString(),
                   // infer basics?
-                  framework: name.includes('api') ? FRAMEWORKS.EXPRESS : FRAMEWORKS.VITE,
+                  framework: name.includes('api') ? FRAMEWORKS.EXPRESS : FRAMEWORKS.REACT,
                 }
               }
             })

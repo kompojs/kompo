@@ -1,8 +1,50 @@
-import { drizzle } from 'drizzle-orm/pglite'
 import { createPgliteClient } from '@<%= it.scope %>/driver-<%= it.driver %>'
-import { clientEnv } from '@<%= it.scope %>/config'
+import { drizzle } from 'drizzle-orm/pglite'
 import * as schema from './schema'
 
-const client = createPgliteClient(clientEnv.<%= it.generateEnvKey('DATABASE_URL') %>)
+type Db = ReturnType<typeof drizzle<typeof schema>>
 
-export const db = drizzle(client, { schema })
+const GLOBAL_KEY = '__pglite_db__'
+
+/**
+ * Read the client database URL from the runtime environment.
+ * Works with both Vite (import.meta.env.VITE_*) and Next.js (process.env.NEXT_PUBLIC_*).
+ */
+function getClientDatabaseUrl(): string {
+  const env: Record<string, string | undefined> = {
+    ...((globalThis as any).process?.env ?? {}),
+    ...(typeof import.meta !== 'undefined' ? (import.meta as any).env : {}),
+  }
+  return (
+    env.<%= it.generateEnvKey('CLIENT_DATABASE_URL', 'client', 'react') %> ??
+    env.<%= it.generateEnvKey('CLIENT_DATABASE_URL', 'client', 'nextjs') %> ??
+    'idb://'
+  )
+}
+
+const getDb = (): Db => {
+  if (typeof window === 'undefined') {
+    return null as any
+  }
+  // Reuse existing instance (survives HMR module re-evaluation)
+  if ((globalThis as any)[GLOBAL_KEY]) {
+    return (globalThis as any)[GLOBAL_KEY]
+  }
+  const connectionString = getClientDatabaseUrl()
+  const client = createPgliteClient(connectionString)
+  const instance = drizzle(client, { schema })
+  ;(globalThis as any)[GLOBAL_KEY] = instance
+  return instance
+}
+
+export const db = new Proxy({} as Db, {
+  get(_target, prop) {
+    const instance = getDb()
+    if (!instance) {
+      throw new Error(
+        `Database accessed on server-side. PGlite is client-only. Property: ${String(prop)}`
+      )
+    }
+    return (instance as any)[prop]
+  },
+})

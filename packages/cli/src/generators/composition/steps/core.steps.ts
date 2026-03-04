@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { LIBS_DIR } from '@kompo/kit'
+import { runFormat, runSort } from '../../../utils/format'
 import {
   DEFAULT_ALIAS,
   getAdapterFactoryName,
@@ -44,7 +45,7 @@ export const checkOverwriteStep: AdapterGeneratorStep = {
     }
 
     if (await utils.fs.fileExists(adapterDir)) {
-      const { confirm, isCancel, log } = await import('@clack/prompts')
+      const { confirm, isCancel } = await import('@clack/prompts')
       const color = (await import('picocolors')).default
 
       const shouldOverwrite = await confirm({
@@ -54,9 +55,10 @@ export const checkOverwriteStep: AdapterGeneratorStep = {
       })
 
       if (isCancel(shouldOverwrite) || !shouldOverwrite) {
-        log.info('Operation cancelled.')
+        utils.addSummary('ℹ️ Operation cancelled by user')
         process.exit(0)
       }
+      context.overwrite = true
       utils.addSummary('⚠️ Overwriting existing adapter')
     }
   },
@@ -118,33 +120,44 @@ export const renderTemplatesStep: AdapterGeneratorStep = {
     }
 
     // 4. Render Infra (ORM-specific domain config from libs/adapters/<cap>/<prov>/infra)
+    // Only scaffold infra on first run. Subsequent adapters only add schemas via orm:generate-schema.
     const infraSource = path.join(templateBase, 'infra')
-    if (await utils.templates.exists(infraSource)) {
+    const infraPackageJson = path.join(infraDest, 'package.json')
+    const infraExists = await utils.fs.fileExists(infraPackageJson)
+
+    if (!infraExists && (await utils.templates.exists(infraSource))) {
       await utils.fs.ensureDir(infraDest)
-      await utils.templates.renderDir(infraSource, infraDest, templateData, { merge: true })
+      await utils.templates.renderDir(infraSource, infraDest, templateData)
       utils.addSummary(`   Rendered infra to libs/infra/${infraName}`)
+    } else if (infraExists) {
+      utils.addSummary(`   ℹ️ Infra libs/infra/${infraName} already exists, skipping scaffold`)
     }
 
     // 5. Render Driver (Resolution based on factory)
-    // We use context.driverTemplatePath which is resolved in factory (could be shared/ or libs/drivers/)
+    // Only scaffold driver on first run. Never overwrite an existing driver.
     if (context.driverTemplatePath && context.driver?.id) {
       const driverId = context.driver.id
       const driverDest = path.join(context.repoRoot, 'libs/drivers', driverId)
+      const driverPackageJson = path.join(driverDest, 'package.json')
+      const driverExists = await utils.fs.fileExists(driverPackageJson)
 
-      const filesSource = path.join(context.driverTemplatePath, 'files')
+      if (!driverExists) {
+        const filesSource = path.join(context.driverTemplatePath, 'files')
 
-      // Ensure files directory exists in the blueprint
-      if (
-        (await utils.templates.exists(filesSource)) ||
-        (await utils.fs.fileExists(
-          path.join(context.repoRoot, 'packages/blueprints/elements', filesSource)
-        ))
-      ) {
-        await utils.fs.ensureDir(driverDest)
-        await utils.templates.renderDir(filesSource, driverDest, templateData)
-        utils.addSummary(
-          `   Rendered driver from ${context.driverTemplatePath} to libs/drivers/${driverId}`
-        )
+        if (
+          (await utils.templates.exists(filesSource)) ||
+          (await utils.fs.fileExists(
+            path.join(context.repoRoot, 'packages/blueprints/elements', filesSource)
+          ))
+        ) {
+          await utils.fs.ensureDir(driverDest)
+          await utils.templates.renderDir(filesSource, driverDest, templateData)
+          utils.addSummary(
+            `   Rendered driver from ${context.driverTemplatePath} to libs/drivers/${driverId}`
+          )
+        }
+      } else {
+        utils.addSummary(`   ℹ️ Driver libs/drivers/${driverId} already exists, skipping`)
       }
     }
 
@@ -161,7 +174,7 @@ export const renderTemplatesStep: AdapterGeneratorStep = {
           ...templateData,
           infraPackageName: `@${context.scope}/infra-${infraName}`,
         },
-        { exclude: ['**/clients/**'] }
+        { merge: !context.overwrite }
       )
       utils.addSummary(`   Rendered adapter to libs/adapters/${context.name}`)
     }
@@ -278,6 +291,48 @@ export const runCompositionStep: AdapterGeneratorStep = {
   },
 }
 
+export const formatFilesStep: AdapterGeneratorStep = {
+  id: 'format-files',
+  description: 'Format and sort generated files',
+  execute: async (context, utils) => {
+    // 1. Format Adapter (always)
+    if (await utils.fs.fileExists(context.adapterDir)) {
+      runSort(context.adapterDir)
+      runFormat(context.adapterDir)
+      utils.addSummary('✨ Adapter formatted')
+    }
+
+    // 2. Format Infra (if applicable)
+    // Access templateData populated in render step
+    const infraDirName = context.templateData?.infraDirName as string | undefined
+    if (infraDirName) {
+      const infraPath = path.join(context.repoRoot, LIBS_DIR, 'infra', infraDirName)
+      if (await utils.fs.fileExists(infraPath)) {
+        runSort(infraPath)
+        runFormat(infraPath)
+        utils.addSummary('✨ Infrastructure formatted')
+      }
+    }
+
+    // 3. Format Driver (if applicable and generated)
+    if (context.driver?.id) {
+      const driverId = context.driver.id
+      const driverPath = path.join(context.repoRoot, 'libs/drivers', driverId)
+      // Only format if we likely generated it or it's a target
+      // Usually safe to format if it exists
+      if (await utils.fs.fileExists(driverPath)) {
+        runFormat(driverPath)
+        // Drivers usually don't have package.json generated by us?
+        // Actually renderTemplatesStep renders `driverTarget` with `templateData`.
+        // If package.json exists, sort it.
+        if (await utils.fs.fileExists(path.join(driverPath, 'package.json'))) {
+          runSort(driverPath)
+        }
+      }
+    }
+  },
+}
+
 export const registerCoreSteps = (registry: typeof stepRegistry): void => {
   registry.register(checkOverwriteStep)
   registry.register(ensureDirectoriesStep)
@@ -288,4 +343,5 @@ export const registerCoreSteps = (registry: typeof stepRegistry): void => {
   registry.register(injectEnvironmentStep)
   registry.register(registerInConfigStep)
   registry.register(runCompositionStep)
+  registry.register(formatFilesStep)
 }

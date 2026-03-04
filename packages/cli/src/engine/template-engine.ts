@@ -235,7 +235,26 @@ export function createTemplateEngine(
     }
 
     const mergedNames = new Set<string>()
+    const existingNames = new Set<string>()
     const statements = existingFile.getStatements()
+
+    // Collect all top-level names from the existing file
+    for (const stmt of statements) {
+      if (
+        stmt.getKind() === SyntaxKind.FunctionDeclaration ||
+        stmt.getKind() === SyntaxKind.ClassDeclaration ||
+        stmt.getKind() === SyntaxKind.InterfaceDeclaration ||
+        stmt.getKind() === SyntaxKind.TypeAliasDeclaration
+      ) {
+        const n = (stmt as any).getName()
+        if (n) existingNames.add(n)
+      } else if (stmt.getKind() === SyntaxKind.VariableStatement) {
+        const decls = (stmt as any).getDeclarations()
+        for (const d of decls) {
+          existingNames.add(d.getName())
+        }
+      }
+    }
 
     for (const statement of statements) {
       let shouldComment = false
@@ -396,8 +415,15 @@ ${text}
         }
       }
 
-      if (name && mergedNames.has(name)) {
-        continue // Skip appending if merged
+      if (name && (mergedNames.has(name) || existingNames.has(name))) {
+        continue // Skip if already merged or already exists in the file
+      }
+
+      // For unnamed statements (if blocks, expression statements), deduplicate by text
+      if (!name) {
+        const newText = statement.getText().trim()
+        const alreadyExists = statements.some((s) => s.getText().trim() === newText)
+        if (alreadyExists) continue
       }
 
       existingFile.addStatements(statement.getText())
@@ -527,7 +553,7 @@ ${text}
       srcDir: string,
       targetDir: string,
       data: Record<string, unknown>,
-      options: { exclude?: string[]; merge?: boolean } = { merge: false }
+      options: { merge?: boolean } = { merge: false }
     ): Promise<void> {
       let fullSrcDir = ''
 
@@ -550,27 +576,9 @@ ${text}
         return // Template directory not found, skip silently
       }
 
-      // Find all template files relative to fullSrcDir
-      // Using cwd option ensures patterns work relatively
-      const ignorePatterns = ['**/node_modules/**', '**/catalog.json', '**/snippets/**']
-
-      if (options?.exclude && Array.isArray(options.exclude)) {
-        options.exclude.forEach((ex) => {
-          // Simplify exclusion logic: if we use relative glob, we can just pass the user's pattern
-          // But we need to handle if the user passed 'apps' hoping to exclude 'apps/**'
-          ignorePatterns.push(ex)
-
-          // If it's a directory name without glob magic, assume recursive ignore
-          if (!ex.includes('*')) {
-            ignorePatterns.push(`${ex}/**`)
-          }
-        })
-      }
-
       const files = await glob('**/*', {
         cwd: fullSrcDir,
         nodir: true,
-        ignore: ignorePatterns,
         dot: true, // include hidden files like .env
       })
 
@@ -592,11 +600,11 @@ ${text}
         const content = await fs.readFile(fullPath)
 
         // Prepare hook helper for this specific template in the directory
-        const templateRelativePath = path.join(srcDir, relativePath)
         const hook = async (name: string): Promise<string> => {
           if (!blueprintPath) return ''
 
-          // 1. Registry Lookup (New Declarative Way)
+          // Registry Lookup (Declarative Way)
+          // The CLI should not need to guess. Just read the blueprint and run the step.
           const hooksRegistry = (data as any).hooks as Record<string, string> | undefined
           if (hooksRegistry?.[name]) {
             const relativePath = hooksRegistry[name]
@@ -611,24 +619,6 @@ ${text}
                 hasSnippet: hasBlueprintSnippet,
               })
             }
-            // If registry defines it but file missing, warn? or return empty?
-            // For now standard behavior: return empty if missing.
-            return ''
-          }
-
-          // 2. Default Path (Legacy)
-          // Snippets are located in [blueprint]/snippets/[relative-template-path-without-ext]/[hook-name].eta
-          const relativeBase = templateRelativePath.replace(/\.(eta|tpl)$/, '')
-          const snippetPath = path.join(blueprintPath, 'snippets', relativeBase, `${name}.eta`)
-
-          if (await fs.fileExists(snippetPath)) {
-            const snippetContent = await fs.readFile(snippetPath)
-            // Recursively render snippet
-            return await eta.renderStringAsync(snippetContent, {
-              ...data,
-              hook,
-              hasSnippet: hasBlueprintSnippet,
-            })
           }
           return ''
         }
@@ -639,8 +629,8 @@ ${text}
           hasSnippet: hasBlueprintSnippet,
         })
 
-        // Remove .tpl or .eta extension to get the final filename
-        const targetRelativePath = relativePath.replace(/\.(tpl|eta)$/, '')
+        // Remove .eta extension to get the final filename
+        const targetRelativePath = relativePath.replace(/\.eta$/, '')
         // Support templates in filenames
         const renderedRelativePath = await eta.renderStringAsync(targetRelativePath, data)
         const targetPath = path.join(targetDir, renderedRelativePath)

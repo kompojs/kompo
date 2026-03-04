@@ -7,7 +7,7 @@
     "@radix-ui/react-dropdown-menu": "catalog:",
     "clsx": "catalog:",
     "tailwind-merge": "catalog:",
-    "@<%= it.scope %>/ui": "workspace:*",
+    "@<%= it.scope %>/ui-<%= it.family %>": "workspace:*",
     "@<%= it.scope %>/config": "workspace:*"
   },
   "devDependencies": {

@@ -1,0 +1,14 @@
+{
+  "description": "React + Vite application configured with Ant Design",
+  "steps": [
+    {
+      "command": "add",
+      "type": "app",
+      "name": "web",
+      "driver": "react",
+      "designSystem": "antd"
+    }
+  ],
+  "name": "Blank",
+  "id": "react.antd.blank"
+}

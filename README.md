@@ -343,7 +343,6 @@ export default async function Dashboard() {
 
 - [ ] Subgraph integration improvements
 - [ ] Cross-chain transaction orchestration helpers
-- [ ] Enterprise support tier
 - [ ] Architecture review credits system
 
 ### 🤔 Exploring (Q1 2026)

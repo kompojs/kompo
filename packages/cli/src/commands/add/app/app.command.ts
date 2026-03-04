@@ -1,12 +1,18 @@
 import path from 'node:path'
 import { cancel, isCancel, log, select, text } from '@clack/prompts'
 import {
-  addStep,
   type DesignSystemId,
   FRAMEWORKS,
   type FrameworkId,
+  getFrameworkFamily,
+} from '@kompo/config/constants'
+import {
+  addStep,
+  ensureKompoCatalog,
   getRequiredFeatures,
+  initKompoConfig,
   mergeBlueprintCatalog,
+  readKompoConfig,
   updateCatalogFromFeatures,
   updateCatalogSources,
   upsertApp,
@@ -19,21 +25,26 @@ import { generateFramework } from '../../../generators/apps/framework.generator'
 import { getDesignSystemSelectOptions } from '../../../utils/design-systems'
 import { runFormat, runSort } from '../../../utils/format'
 import { installDependencies } from '../../../utils/install'
-import { ensureProjectContext } from '../../../utils/project'
+import { findRepoRoot } from '../../../utils/project'
 import { selectWithNavigation } from '../../../utils/prompts'
+import { loadStarterFromTemplateArg } from '../../../utils/starters'
 import {
   createKebabCaseValidator,
   RESTRICTED_APP_NAMES,
 } from '../../../validations/naming.validation'
 
+const DEFAULT_ORG = 'org'
+
 export function createAddAppCommand(): Command {
   return new Command('app')
     .description('Add a new application to the project')
     .argument('[name]', 'Application name')
-    .option('--framework <name>', 'Framework (nextjs, vite, express)')
+    .option('--framework <name>', 'Framework (nextjs, react, vue, nuxt, express)')
     .option('--design <name>', 'Design system (tailwind, shadcn, vanilla)')
+    .option('-t, --template <name>', 'Starter/template id or manifest path')
     .option('--org <name>', 'Organization name')
     .option('-y, --yes', 'Skip prompts')
+    .option('--verbose', 'Verbose output')
     .action(async (name, options) => {
       await runAddApp(name, options)
     })
@@ -42,10 +53,12 @@ export function createAddAppCommand(): Command {
 export interface AddAppOptions {
   framework?: string
   design?: string
+  template?: string
   org?: string
   yes?: boolean
   blueprintPath?: string
   skipInstall?: boolean
+  verbose?: boolean
 }
 
 export async function runAddApp(
@@ -54,57 +67,166 @@ export async function runAddApp(
 ): Promise<void> {
   const fs = createFsEngine()
   const cwd = process.cwd()
-  const { repoRoot, config } = await ensureProjectContext(cwd)
+  const repoRoot = (await findRepoRoot(cwd)) || cwd
+
+  // Resolve or initialize Kompo project context
+  let config = readKompoConfig(repoRoot)
+
+  if (!config) {
+    // New project: always prompt for organization explicitly so the user
+    // consciously chooses their namespace. We intentionally ignore any
+    // --org or --yes flags here.
+    const response = await text({
+      message: 'Organization name (namespace for your packages)',
+      defaultValue: DEFAULT_ORG,
+      placeholder: DEFAULT_ORG,
+    })
+    if (isCancel(response)) {
+      cancel('Cancelled')
+      process.exit(0)
+    }
+
+    const orgForInit = (response as string) || DEFAULT_ORG
+    initKompoConfig(repoRoot, `${orgForInit}-project`, orgForInit)
+    ensureKompoCatalog(repoRoot)
+
+    config = readKompoConfig(repoRoot)
+    if (!config) {
+      log.error(color.red('❌ Failed to initialize Kompo project.'))
+      process.exit(1)
+    }
+  }
 
   const org = options.org || config.project.org || 'company'
 
   let appName = nameArg
   let targetDir = ''
   let framework = options.framework as FrameworkId | undefined
+  let designSystem = options.design
 
-  // 1. App Type & Framework Selection (Navigation Loop)
-  if (!framework) {
-    if (options.yes) {
-      // Default to Next.js Fullstack if yes flag is used without args
-      framework = FRAMEWORKS.NEXTJS
-    } else {
-      const selection = await selectWithNavigation('What kind of application do you want to add?', [
-        {
-          label: 'Frontend / Fullstack Web App',
-          value: 'frontend',
-          hint: 'Vite, Next.js',
-          submenuMessage: 'What kind of application do you want to add?',
-          options: [
-            { label: 'Next.js (App Router)', value: FRAMEWORKS.NEXTJS, hint: 'App Router + API' },
-            { label: 'React + Vite', value: FRAMEWORKS.VITE, hint: 'SPA' },
-          ],
-        },
-        {
-          label: 'Backend API Service',
-          value: 'backend',
-          hint: 'Node.js, Express',
-          submenuMessage: 'What kind of application do you want to add?',
-          options: [{ label: 'Node.js (Express)', value: 'express', hint: 'Using Vite for build' }],
-        },
-      ])
-
-      // Map selection to framework variables
-      if (selection === 'express') {
-        framework = FRAMEWORKS.EXPRESS
+  // 1. App Type & Framework / Design System
+  if (options.template) {
+    // When a template is provided, derive framework/design from the starter
+    const { config: starterConfig } = await loadStarterFromTemplateArg(options.template)
+    framework = starterConfig.framework as FrameworkId
+    designSystem = starterConfig.designSystem
+    log.step(
+      `Using starter ${color.cyan(options.template)} with framework ${color.cyan(
+        String(framework)
+      )} and design system ${color.cyan(String(designSystem))}`
+    )
+  } else {
+    // 1.a Interactive framework selection when no template is provided
+    if (!framework) {
+      if (options.yes) {
+        // Default to Next.js Fullstack if yes flag is used without args
+        framework = FRAMEWORKS.NEXTJS
       } else {
-        framework = selection as FrameworkId
-      }
+        const choice = await select({
+          message: 'How do you want to start your application?',
+          options: [
+            {
+              label: 'From Starter',
+              value: 'starter',
+              hint: 'Use a predefined starter (recommended)',
+            },
+            {
+              label: 'Blank App',
+              value: 'blank',
+              hint: 'Start from a minimal app and choose framework/design',
+            },
+          ],
+        })
+        if (isCancel(choice)) {
+          cancel('Cancelled')
+          process.exit(0)
+        }
 
-      // Feedback Log
-      if (framework) {
-        const fwName =
-          framework === FRAMEWORKS.NEXTJS
-            ? 'Next.js'
-            : framework === FRAMEWORKS.EXPRESS
-              ? 'Express (Node.js)'
-              : 'React + Vite'
+        if (choice === 'starter') {
+          // Delegate to starter list prompt (reusing listStarters)
+          const { listStarters } = await import('@kompo/blueprints')
+          const starters = listStarters()
+          if (starters.length === 0) {
+            log.error(color.red('No starters available. Please update your installation.'))
+            process.exit(1)
+          }
 
-        log.step(`Framework selected: ${color.cyan(fwName)}`)
+          const starterChoice = await select({
+            message: 'Select a starter',
+            options: starters.map((s) => ({
+              label: s.name || s.id,
+              value: s.id,
+              hint: s.description,
+            })),
+          })
+          if (isCancel(starterChoice)) {
+            cancel('Cancelled')
+            process.exit(0)
+          }
+
+          const { config: starterConfig } = await loadStarterFromTemplateArg(
+            starterChoice as string
+          )
+          framework = starterConfig.framework as FrameworkId
+          designSystem = starterConfig.designSystem
+          log.step(
+            `Using starter ${color.cyan(String(starterChoice))} with framework ${color.cyan(
+              String(framework)
+            )} and design system ${color.cyan(String(designSystem))}`
+          )
+        } else {
+          // Map selection to framework variables for blank/frontend/backend choices
+          const selection = await selectWithNavigation<FrameworkId | 'express'>(
+            'What kind of application do you want to add?',
+            [
+              {
+                label: 'Frontend / Fullstack Web App',
+                value: 'frontend',
+                hint: 'React, Vue, Next.js, Nuxt',
+                submenuMessage: 'What kind of application do you want to add?',
+                options: [
+                  {
+                    label: 'Next.js (App Router)',
+                    value: FRAMEWORKS.NEXTJS,
+                    hint: 'React - App Router + API',
+                  },
+                  { label: 'React + Vite', value: FRAMEWORKS.REACT, hint: 'React SPA' },
+                  { label: 'Nuxt', value: FRAMEWORKS.NUXT, hint: 'Vue - Fullstack' },
+                  { label: 'Vue + Vite', value: FRAMEWORKS.VUE, hint: 'Vue SPA' },
+                ],
+              },
+              {
+                label: 'Backend API Service',
+                value: 'backend',
+                hint: 'Node.js, Express',
+                submenuMessage: 'What kind of application do you want to add?',
+                options: [
+                  { label: 'Node.js (Express)', value: 'express', hint: 'Using Vite for build' },
+                ],
+              },
+            ]
+          )
+
+          if (selection === 'express') {
+            framework = FRAMEWORKS.EXPRESS
+          } else {
+            framework = selection as FrameworkId
+          }
+
+          // Feedback Log
+          if (framework) {
+            const fwNames: Record<string, string> = {
+              [FRAMEWORKS.NEXTJS]: 'Next.js',
+              [FRAMEWORKS.REACT]: 'React + Vite',
+              [FRAMEWORKS.VUE]: 'Vue + Vite',
+              [FRAMEWORKS.NUXT]: 'Nuxt',
+              [FRAMEWORKS.EXPRESS]: 'Express (Node.js)',
+            }
+            const fwName = fwNames[framework as string] || framework
+
+            log.step(`Framework selected: ${color.cyan(fwName)}`)
+          }
+        }
       }
     }
   }
@@ -151,7 +273,6 @@ export async function runAddApp(
 
   // 4. Design System (Skip for pure backend frameworks)
   const isBackend = framework === FRAMEWORKS.EXPRESS
-  let designSystem = options.design
 
   if (isBackend) {
     designSystem = designSystem || 'vanilla'
@@ -163,7 +284,7 @@ export async function runAddApp(
     } else {
       const response = await select({
         message: 'Design System',
-        options: getDesignSystemSelectOptions(),
+        options: getDesignSystemSelectOptions(framework),
       })
       if (isCancel(response)) {
         cancel('Cancelled')
@@ -198,6 +319,7 @@ export async function runAddApp(
     designSystem: designSystem as DesignSystemId,
     scope: org,
     blueprintPath: options.blueprintPath,
+    framework: framework as FrameworkId,
   })
 
   // Update Config
@@ -222,13 +344,13 @@ export async function runAddApp(
 
   const mergeCatalogFor = async (
     name: string,
-    type: 'app' | 'design-system',
+    blueprintPath: string,
     context: Record<string, any> = {}
   ) => {
-    const catalogPath = getBlueprintCatalogPath(name, type)
+    const catalogPath = getBlueprintCatalogPath(blueprintPath)
     if (catalogPath) {
       mergeBlueprintCatalog(repoRoot, name, catalogPath)
-      await mergeBlueprintScripts(repoRoot, name, type, {
+      await mergeBlueprintScripts(repoRoot, blueprintPath, {
         scope: org,
         app: appName,
         ...context,
@@ -237,10 +359,14 @@ export async function runAddApp(
   }
 
   const frameworkId = framework as string
-  await mergeCatalogFor(frameworkId, 'app', { name: frameworkId })
+  await mergeCatalogFor(frameworkId, `apps/${frameworkId}/framework`, { name: frameworkId })
 
-  if (designSystem && designSystem !== 'vanilla') {
-    await mergeCatalogFor(designSystem, 'design-system', { name: designSystem })
+  if (designSystem) {
+    const family = getFrameworkFamily(framework as string)
+    await mergeCatalogFor(designSystem, `libs/ui/${family}/${designSystem}`, {
+      name: designSystem,
+      family,
+    })
   }
   const features = getRequiredFeatures(framework as string, designSystem)
   updateCatalogFromFeatures(repoRoot, features)

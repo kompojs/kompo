@@ -1,0 +1,108 @@
+<script setup lang="ts">
+import { clientEnv } from './env'
+import { Play, BookOpen, Puzzle, SquareTerminal, Rocket, ArrowUpRight } from 'lucide-vue-next'
+</script>
+
+<template>
+  <div class="min-h-screen flex flex-col">
+    <%~ await it.hook('app-content') %>
+    <% if (!it.hooks?.['app-content']) { %>
+    <div class="bg-[#020420] text-white flex flex-col items-center justify-center min-h-screen text-sm sm:text-base py-24">
+      <div class="flex flex-col max-w-[980px] w-full px-4">
+        <h1 class="flex flex-col items-center justify-center gap-4">
+          <a href="<%= it.branding.url %>" target="_blank" class="inline-flex items-end gap-4" rel="noopener">
+            <span><%~ it.branding.horizontalLogo %></span>
+            <span class="inline-block bg-[#00DC82]/10 border border-[#00DC82]/50 text-[#00DC82] font-mono font-semibold text-[12px] sm:text-[14px] leading-none px-2 py-1 sm:px-[10px] sm:py-[6px] rounded">{{ <%= it.getEnv('VITE_APP_NAME') %> }}</span>
+          </a>
+        </h1>
+
+        <!-- Cards Row 1: Get Started (span 2) + Documentation -->
+        <div class="grid grid-cols-1 gap-4 w-full mt-6 sm:gap-6 sm:mt-10 sm:grid-cols-[2fr_1fr]">
+          <!-- Get Started Card (wide) -->
+          <div class="h-full border-[#00DC82]/50 bg-[#00DC82]/5 flex flex-col gap-1 p-6 rounded-lg relative transition-all duration-150">
+            <div class="flex items-center justify-center w-8 h-8 rounded bg-[#00DC82]/5 border border-[#00DC82]/50 text-[#00DC82] transition-all duration-150">
+              <Play :size="18" />
+            </div>
+            <h2 class="text-base font-semibold mt-1 leading-6"><%= it.texts.features.getStarted.title %></h2>
+            <p class="text-white/70 text-sm leading-5"><%= it.texts.features.getStarted.description %></p>
+          </div>
+
+          <!-- Documentation Card -->
+          <a href="<%= it.texts.features.docs.url %>" target="_blank" rel="noopener" class="h-full group bg-white/5 border border-white/10 flex flex-col gap-1 p-6 rounded-lg relative transition-all duration-150 hover:border-[#00DC82]">
+            <div class="flex items-center justify-center w-8 h-8 rounded bg-[#00DC82]/5 border border-[#00DC82]/50 text-[#00DC82] transition-all duration-150 group-hover:border-[#00DC82]/80">
+              <span>
+                <BookOpen :size="18" />
+              </span>
+            </div>
+            <span class="absolute top-4 right-4 text-white/25 transition-all duration-150 group-hover:text-[#00DC82]">
+              <ArrowUpRight :size="16" />
+            </span>
+            <h2 class="text-base font-semibold mt-1 leading-6"><%= it.texts.features.docs.title %></h2>
+            <p class="text-white/70 text-sm leading-5"><%= it.texts.features.docs.description %></p>
+          </a>
+        </div>
+
+        <!-- Cards Row 2: Blueprints + Examples + Deploy -->
+        <div class="grid grid-cols-1 gap-4 w-full mt-4 sm:gap-6 sm:mt-6 sm:grid-cols-3">
+          <a href="<%= it.texts.features.blueprints.url %>" target="_blank" rel="noopener" class="h-full group bg-white/5 border border-white/10 flex flex-col gap-1 p-6 rounded-lg relative transition-all duration-150 hover:border-[#00DC82]">
+            <div class="flex items-center justify-center w-8 h-8 rounded bg-[#00DC82]/5 border border-[#00DC82]/50 text-[#00DC82] transition-all duration-150 group-hover:border-[#00DC82]/80">
+              <Puzzle :size="18" />
+            </div>
+            <span class="absolute top-4 right-4 text-white/25 transition-all duration-150 group-hover:text-[#00DC82]">
+              <ArrowUpRight :size="16" />
+            </span>
+            <h2 class="text-base font-semibold mt-1 leading-6"><%= it.texts.features.blueprints.title %></h2>
+            <p class="text-white/70 text-sm leading-5"><%= it.texts.features.blueprints.description %></p>
+          </a>
+
+          <a href="<%= it.texts.features.examples.url %>" target="_blank" rel="noopener" class="h-full group bg-white/5 border border-white/10 flex flex-col gap-1 p-6 rounded-lg relative transition-all duration-150 hover:border-[#00DC82]">
+            <div class="flex items-center justify-center w-8 h-8 rounded bg-[#00DC82]/5 border border-[#00DC82]/50 text-[#00DC82] transition-all duration-150 group-hover:border-[#00DC82]/80">
+              <SquareTerminal :size="18" />
+            </div>
+            <span class="absolute top-4 right-4 text-white/25 transition-all duration-150 group-hover:text-[#00DC82]">
+              <ArrowUpRight :size="16" />
+            </span>
+            <h2 class="text-base font-semibold mt-1 leading-6"><%= it.texts.features.examples.title %></h2>
+            <p class="text-white/70 text-sm leading-5"><%= it.texts.features.examples.description %></p>
+          </a>
+
+          <a href="<%= it.texts.features.deploy.url %>" target="_blank" rel="noopener" class="h-full group bg-white/5 border border-white/10 flex flex-col gap-1 p-6 rounded-lg relative transition-all duration-150 hover:border-[#00DC82]">
+            <div class="flex items-center justify-center w-8 h-8 rounded bg-[#00DC82]/5 border border-[#00DC82]/50 text-[#00DC82] transition-all duration-150 group-hover:border-[#00DC82]/80">
+              <Rocket :size="18" />
+            </div>
+            <span class="absolute top-4 right-4 text-white/25 transition-all duration-150 group-hover:text-[#00DC82]">
+              <ArrowUpRight :size="16" />
+            </span>
+            <h2 class="text-base font-semibold mt-1 leading-6"><%= it.texts.features.deploy.title %></h2>
+            <p class="text-white/70 text-sm leading-5"><%= it.texts.features.deploy.description %></p>
+          </a>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-6 mb-6 px-4 w-full sm:mt-10 sm:mb-0">
+          <ul class="flex gap-4 items-center justify-center">
+            <li>
+              <a href="<%= it.socialLinks.github %>" target="_blank" rel="noopener" class="text-white/40 transition-colors duration-150 hover:text-white block w-6 h-6" title="GitHub">
+                <span class="sr-only">Kompo GitHub</span>
+                <span><%~ it.socialIcons.github %></span>
+              </a>
+            </li>
+            <li>
+              <a href="<%= it.socialLinks.twitter %>" target="_blank" rel="noopener" class="text-white/40 transition-colors duration-150 hover:text-white block w-6 h-6" title="X">
+                <span class="sr-only">Kompo on X</span>
+                <span><%~ it.socialIcons.x %></span>
+              </a>
+            </li>
+            <li>
+              <a href="<%= it.socialLinks.farcaster %>" target="_blank" rel="noopener" class="text-white/40 transition-colors duration-150 hover:text-white block w-6 h-6" title="Farcaster">
+                <span class="sr-only">Kompo Farcaster</span>
+                <span><%~ it.socialIcons.farcaster %></span>
+              </a>
+            </li>
+          </ul>
+        </footer>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</template>

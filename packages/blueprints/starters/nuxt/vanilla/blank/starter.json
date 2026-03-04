@@ -1,0 +1,13 @@
+{
+  "description": "Minimal Nuxt application without any CSS framework",
+  "steps": [
+    {
+      "command": "add",
+      "type": "app",
+      "name": "web",
+      "driver": "nuxt"
+    }
+  ],
+  "name": "Blank",
+  "id": "nuxt.vanilla.blank"
+}

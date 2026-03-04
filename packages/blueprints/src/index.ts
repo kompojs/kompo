@@ -1,9 +1,9 @@
 /**
  * Unified Blueprint Loader for Kompo CLI
- * Supports both Community and Enterprise blueprints
  */
 
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { type Dirent, existsSync, readdirSync, readFileSync } from 'node:fs'
+
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Blueprint, FeatureManifest, StarterManifest } from './types'
@@ -23,16 +23,8 @@ export function getTemplatesDir(): string {
 
 // Blueprint directories
 const BLUEPRINTS_ROOT = join(__dirname, '..')
-const COMMUNITY_APPS = join(BLUEPRINTS_ROOT, 'starters')
-const COMMUNITY_FEATURES = join(BLUEPRINTS_ROOT, 'features')
-const ENTERPRISE_BLUEPRINTS = join(BLUEPRINTS_ROOT, '..', '..', 'enterprise', 'blueprints')
-const ENTERPRISE_APPS = join(ENTERPRISE_BLUEPRINTS, 'starters')
-const ENTERPRISE_FEATURES = join(ENTERPRISE_BLUEPRINTS, 'features')
-
-function detectPlan(): 'community' | 'enterprise' {
-  const enterprisePath = join(process.cwd(), 'packages', 'enterprise')
-  return existsSync(enterprisePath) ? 'enterprise' : 'community'
-}
+const STARTERS_ROOT = join(BLUEPRINTS_ROOT, 'starters')
+const FEATURES_ROOT = join(BLUEPRINTS_ROOT, 'features')
 
 function loadStartersFrom(dir: string, maxDepth = 1): StarterManifest[] {
   if (!existsSync(dir)) return []
@@ -129,38 +121,22 @@ export function listBlueprints(): Blueprint[] {
 }
 
 export function listFeatures(): FeatureManifest[] {
-  const plan = detectPlan()
   const features: FeatureManifest[] = []
-
-  features.push(...loadFeaturesFrom(COMMUNITY_FEATURES))
-
-  if (plan === 'enterprise') {
-    if (existsSync(ENTERPRISE_FEATURES)) {
-      features.push(...loadFeaturesFrom(ENTERPRISE_FEATURES))
-    }
-  }
-
+  features.push(...loadFeaturesFrom(FEATURES_ROOT))
   return features
 }
 
 export function listStarters(): StarterManifest[] {
-  const plan = detectPlan()
   const starters: StarterManifest[] = []
 
-  starters.push(...loadStartersFrom(COMMUNITY_APPS, 4))
-
-  if (plan === 'enterprise') {
-    if (existsSync(ENTERPRISE_APPS)) {
-      starters.push(...loadStartersFrom(ENTERPRISE_APPS, 4))
-    }
-  }
+  starters.push(...loadStartersFrom(STARTERS_ROOT, 4))
 
   // Filter to only return real starters (those with steps), not intermediate metadata
   return starters.filter((s) => s.steps && s.steps.length > 0)
 }
 
 export function getFeature(name: string): FeatureManifest | null {
-  const p = join(COMMUNITY_FEATURES, name, 'features.json')
+  const p = join(FEATURES_ROOT, name, 'features.json')
   if (existsSync(p)) {
     try {
       const content = readFileSync(p, 'utf-8')
@@ -171,18 +147,6 @@ export function getFeature(name: string): FeatureManifest | null {
     } catch {}
   }
 
-  if (existsSync(join(ENTERPRISE_FEATURES, name))) {
-    const ep = join(ENTERPRISE_FEATURES, name, 'features.json')
-    if (existsSync(ep)) {
-      try {
-        const content = readFileSync(ep, 'utf-8')
-        const manifest = JSON.parse(content) as FeatureManifest
-        manifest.path = dirname(ep)
-        manifest.type = 'feature'
-        return manifest
-      } catch {}
-    }
-  }
   return null
 }
 
@@ -204,12 +168,8 @@ export function loadStarterFromPath(fullDir: string): StarterManifest | null {
 export function getStarter(name: string): StarterManifest | null {
   const relativePath = name.split('.').join('/')
 
-  const starter = loadStarterFromPath(join(COMMUNITY_APPS, relativePath))
+  const starter = loadStarterFromPath(join(STARTERS_ROOT, relativePath))
   if (starter) return starter
-
-  if (existsSync(join(ENTERPRISE_APPS, relativePath))) {
-    return loadStarterFromPath(join(ENTERPRISE_APPS, relativePath))
-  }
 
   if (existsSync(join(name, 'starter.json'))) {
     return loadStarterFromPath(name)
@@ -280,13 +240,23 @@ export function hasBlueprintSnippet(templatePath: string, snippetName: string): 
 
 export function getFrameworkCompositionTemplates(framework: string): string[] {
   const frameworkMap: Record<string, string> = {
-    nextjs: 'apps/nextjs/base',
-    vite: 'apps/vite/base',
-    vanilla: 'apps/vanilla/base',
+    nextjs: 'apps/nextjs/framework',
+    react: 'apps/react/framework',
+    vue: 'apps/vue/framework',
+    nuxt: 'apps/nuxt/framework',
+    express: 'apps/express/framework',
   }
 
   const base = frameworkMap[framework.toLowerCase()]
   if (!base) return []
+
+  // Vue/Nuxt use .vue.eta extensions for SFC composition templates
+  if (framework === 'vue' || framework === 'nuxt') {
+    return [
+      `${base}/src/composition/ClientComposition.vue.eta`,
+      `${base}/src/composition/ServerComposition.ts.eta`,
+    ]
+  }
 
   return [
     `${base}/src/composition/ClientComposition.tsx.eta`,
@@ -294,46 +264,18 @@ export function getFrameworkCompositionTemplates(framework: string): string[] {
   ]
 }
 
-export function listDesignSystems(): string[] {
-  const uiDir = join(getTemplatesDir(), 'libs', 'ui')
+export function listDesignSystems(family?: string): string[] {
+  const baseUiDir = join(getTemplatesDir(), 'libs', 'ui')
+  const uiDir = family ? join(baseUiDir, family) : baseUiDir
   if (!existsSync(uiDir)) return []
 
   return readdirSync(uiDir, { withFileTypes: true })
-    .filter((dirent) => dirent.isDirectory() && !dirent.name.startsWith('.'))
-    .map((dirent) => dirent.name)
+    .filter((dirent: Dirent) => dirent.isDirectory() && !dirent.name.startsWith('.'))
+    .map((dirent: Dirent) => dirent.name)
 }
 
-export function getBlueprintCatalogPath(
-  name: string,
-  type: 'app' | 'feature' | 'design-system' | 'lib' | 'adapter' | 'driver',
-  filename = 'catalog.json'
-): string | null {
+export function getBlueprintCatalogPath(blueprintPath: string): string | null {
   const templatesDir = getTemplatesDir()
-  let candidatePath = ''
-
-  if (type === 'app') {
-    candidatePath = join(templatesDir, 'apps', name, filename)
-    if (!existsSync(candidatePath)) {
-      candidatePath = join(templatesDir, 'apps', name, 'blank', filename)
-    }
-  } else if (type === 'feature') {
-    candidatePath = join(templatesDir, 'features', name, filename)
-  } else if (type === 'lib' || type === 'design-system') {
-    if (type === 'design-system') {
-      candidatePath = join(templatesDir, 'libs', 'ui', name, filename)
-    } else {
-      candidatePath = join(templatesDir, 'libs', name, filename)
-    }
-  } else if (type === 'adapter') {
-    const parts = name.split('/')
-    if (parts.length === 2) {
-      candidatePath = join(templatesDir, 'libs', 'adapters', parts[0], parts[1], filename)
-    } else {
-      candidatePath = join(templatesDir, 'libs', 'adapters', name, filename)
-    }
-  } else if (type === 'driver') {
-    candidatePath = join(templatesDir, 'libs', 'drivers', name, filename)
-  }
-
+  const candidatePath = join(templatesDir, blueprintPath, 'catalog.json')
   return existsSync(candidatePath) ? candidatePath : null
 }

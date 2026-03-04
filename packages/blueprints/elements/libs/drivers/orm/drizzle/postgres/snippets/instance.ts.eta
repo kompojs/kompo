@@ -1,20 +1,20 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { createPostgresClient } from '@<%= it.scope %>/driver-<%= it.driver %>'
+import { serverEnv } from '@<%= it.scope %>/config/server'
 import * as schema from './schema'
 
-<%
-// Determine whether to use serverEnv or clientEnv based on the driver's blueprint
-const dbUrlEnv = it.driverConfig?.env?.DATABASE_URL
-const isClient = dbUrlEnv?.side === 'client'
-const envObject = isClient ? 'clientEnv' : 'serverEnv'
-%>
-import { <%= envObject %> } from '@<%= it.scope %>/config/<%= isClient ? 'client' : 'server' %>'
+let _db: ReturnType<typeof drizzle<typeof schema>> | null = null
 
-const connectionString = <%= envObject %>.<%= it.alias.toUpperCase().replace(/-/g, '_') %>_DATABASE_URL
-
-if (!connectionString) {
-  throw new Error('<%= it.alias.toUpperCase().replace(/-/g, '_') %>_DATABASE_URL is not defined')
+const getDb = () => {
+  if (!_db) {
+    const client = createPostgresClient(<%= it.getEnv('DATABASE_URL') %>)
+    _db = drizzle(client, { schema })
+  }
+  return _db
 }
 
-const client = createPostgresClient(connectionString)
-export const db = drizzle(client, { schema })
+export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
+  get(_target, prop) {
+    return (getDb() as any)[prop]
+  },
+})

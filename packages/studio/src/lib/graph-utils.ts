@@ -35,6 +35,7 @@ interface ProjectConfig {
 }
 
 // Cast config to our interface
+// @ts-expect-error: virtual:kompo-config is provided by Vite/Turbopack plugins at runtime
 const typedConfig = (await import('virtual:kompo-config')).default as ProjectConfig
 
 // Helper to get handles based on angle from center

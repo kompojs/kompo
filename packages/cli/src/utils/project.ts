@@ -23,9 +23,7 @@ export async function ensureProjectContext(
   if (!config) {
     log.error(color.red('❌ Project not initialized.'))
     log.message('This command must be run inside an existing Kompo project.')
-    log.message(
-      `\nTo create a new project, run:\n  ${color.cyan('pnpm kompo new <project-name>')}\n`
-    )
+    log.message(`\nTo create a new project, run:\n  ${color.cyan('pnpm kompo add app')}\n`)
     process.exit(1)
   }
 
