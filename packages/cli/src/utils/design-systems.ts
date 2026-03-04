@@ -14,6 +14,7 @@ export interface DesignSystem {
 
 import { listDesignSystems } from '@kompo/blueprints'
 import type { DesignSystemId } from '@kompo/config/constants'
+import { getFrameworkFamily } from '@kompo/config/constants'
 
 /**
  * Metadata for hardcoded descriptions (fallback/enrichment)
@@ -32,8 +33,9 @@ const DS_METADATA: Record<string, Partial<DesignSystem>> = {
   antd: { name: 'Ant Design', description: 'Enterprise-class UI', hint: 'Enterprise UI' },
 }
 
-export function getAvailableDesignSystems(): DesignSystem[] {
-  const discoveredIds = listDesignSystems()
+export function getAvailableDesignSystems(framework?: string): DesignSystem[] {
+  const family = framework ? getFrameworkFamily(framework) : undefined
+  const discoveredIds = listDesignSystems(family)
 
   // Merge "known" metadata with whatever is in the blueprints folder
   return discoveredIds.map((id) => ({
@@ -47,8 +49,8 @@ export function getAvailableDesignSystems(): DesignSystem[] {
 /**
  * Get design system options formatted for @clack/prompts select
  */
-export function getDesignSystemSelectOptions() {
-  return getAvailableDesignSystems().map((ds) => ({
+export function getDesignSystemSelectOptions(framework?: string) {
+  return getAvailableDesignSystems(framework).map((ds) => ({
     label: ds.name,
     value: ds.id,
     hint: ds.hint,
@@ -58,13 +60,16 @@ export function getDesignSystemSelectOptions() {
 /**
  * Get design system by ID
  */
-export function getDesignSystemById(id: DesignSystemId): DesignSystem | undefined {
-  return getAvailableDesignSystems().find((ds) => ds.id === id)
+export function getDesignSystemById(
+  id: DesignSystemId,
+  framework?: string
+): DesignSystem | undefined {
+  return getAvailableDesignSystems(framework).find((ds) => ds.id === id)
 }
 
 /**
  * Check if a design system ID is valid
  */
-export function isValidDesignSystem(id: string): id is DesignSystemId {
-  return getAvailableDesignSystems().some((ds) => ds.id === id)
+export function isValidDesignSystem(id: string, framework?: string): id is DesignSystemId {
+  return getAvailableDesignSystems(framework).some((ds) => ds.id === id)
 }

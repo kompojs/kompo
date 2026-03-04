@@ -101,16 +101,14 @@ describe('runAddAdapter', () => {
           kind: 'repository',
           defaultSubject: 'db',
           description: 'ORM',
-          plan: 'community',
           status: 'available',
           providers: [
             {
               id: 'drizzle',
               name: 'Drizzle',
-              plan: 'community',
               status: 'available',
               description: 'Drizzle ORM',
-              drivers: [{ id: 'pglite', name: 'PGLite', plan: 'community', status: 'available' }],
+              drivers: [{ id: 'pglite', name: 'PGLite', status: 'available' }],
             },
           ],
         },

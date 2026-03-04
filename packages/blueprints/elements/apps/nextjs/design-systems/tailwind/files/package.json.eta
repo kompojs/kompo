@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "@<%= it.scope %>/ui": "workspace:*",
+    "next-themes": "catalog:",
+    "@<%= it.scope %>/ui-<%= it.family %>": "workspace:*",
     "@<%= it.scope %>/config": "workspace:*"
   },
   "devDependencies": {

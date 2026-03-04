@@ -8,13 +8,13 @@ export type EnvVisibility = 'client' | 'server'
  * @param baseKey - The agnostic key (e.g. "PROJECT_ID")
  * @param alias - The adapter alias (e.g. "my-wallet")
  * @param visibility - Whether the variable should be public or private
- * @param framework - The target framework (nextjs or vite)
+ * @param framework - Required when visibility is 'client'. Must be explicitly provided.
  */
 export function generateEnvKey(
   baseKey: string,
   alias: string,
   visibility: EnvVisibility = 'server',
-  framework: 'nextjs' | 'vite' = 'nextjs'
+  framework?: 'nextjs' | 'react' | 'vue' | 'nuxt'
 ): string {
   const normalizedAlias = toSnakeCase(alias).toUpperCase()
   const normalizedKey = toSnakeCase(baseKey).toUpperCase()
@@ -37,7 +37,14 @@ export function generateEnvKey(
   }
 
   if (visibility === 'client') {
-    return framework === 'nextjs' ? `NEXT_PUBLIC_${fullKey}` : `VITE_${fullKey}`
+    if (!framework) {
+      throw new Error(
+        `❌ generateEnvKey: 'framework' is required when visibility is 'client' (key: ${baseKey}). Pass 'nextjs', 'react', 'vue', or 'nuxt' explicitly.`
+      )
+    }
+    if (framework === 'nextjs') return `NEXT_PUBLIC_${fullKey}`
+    if (framework === 'nuxt') return `NUXT_PUBLIC_${fullKey}`
+    return `VITE_${fullKey}`
   }
 
   return fullKey
@@ -45,11 +52,17 @@ export function generateEnvKey(
 
 /**
  * Returns the code reference for an environment variable.
+ * Client vars use the per-app `clientEnv` with full prefixed keys.
+ * Server vars use the shared `serverEnv`.
  *
  * @param fullKey - The final variable key (e.g. "NEXT_PUBLIC_ALIASED_KEY")
  */
 export function getEnvReference(fullKey: string): string {
-  if (fullKey.startsWith('NEXT_PUBLIC_') || fullKey.startsWith('VITE_')) {
+  if (
+    fullKey.startsWith('NEXT_PUBLIC_') ||
+    fullKey.startsWith('VITE_') ||
+    fullKey.startsWith('NUXT_PUBLIC_')
+  ) {
     return `clientEnv.${fullKey}`
   }
   return `serverEnv.${fullKey}`
@@ -61,7 +74,12 @@ export function getEnvReference(fullKey: string): string {
  * Repositories/Gateways usually use server envs.
  */
 export function getVisibilityHeuristic(baseKey: string, _capability?: string): EnvVisibility {
-  if (baseKey.startsWith('NEXT_PUBLIC_') || baseKey.startsWith('VITE_')) return 'client'
+  if (
+    baseKey.startsWith('NEXT_PUBLIC_') ||
+    baseKey.startsWith('VITE_') ||
+    baseKey.startsWith('NUXT_PUBLIC_')
+  )
+    return 'client'
   // Capability based heuristics could be added here
   return 'server'
 }
@@ -80,6 +98,11 @@ export function getScopedEnvKey(key: string, projectName: string): string {
   if (key.startsWith('NEXT_PUBLIC_')) {
     const suffix = key.replace('NEXT_PUBLIC_', '')
     return `NEXT_PUBLIC_${normalizedProject}_${suffix}`
+  }
+
+  if (key.startsWith('NUXT_PUBLIC_')) {
+    const suffix = key.replace('NUXT_PUBLIC_', '')
+    return `NUXT_PUBLIC_${normalizedProject}_${suffix}`
   }
 
   if (key.startsWith('VITE_')) {

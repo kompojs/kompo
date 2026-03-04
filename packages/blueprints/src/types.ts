@@ -27,5 +27,4 @@ export type { BlueprintType }
 
 export interface BlueprintOptions {
   framework?: string
-  plan?: 'community' | 'enterprise'
 }

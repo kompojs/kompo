@@ -1,0 +1,29 @@
+import type { Chain } from 'viem'
+
+export const formatAddress = (address: string): string => {
+  if (!address) return ''
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
+}
+
+/**
+ * Convert an IPFS URL to an HTTP gateway URL
+ * @example ipfs://QmQ4DFYeYMgfGkT9vhnphw24Ea2rbX3ko67MK5UqBS7A1X/0.jpg
+ * @returns https://ipfs.io/ipfs/QmQ4DFYeYMgfGkT9vhnphw24Ea2rbX3ko67MK5UqBS7A1X/0.jpg
+ */
+export const ipfsToHttp = (url: string): string => {
+  if (!url) return ''
+  if (url.startsWith('ipfs://')) {
+    return url.replace('ipfs://', 'https://ipfs.io/ipfs/')
+  }
+  return url
+}
+
+/**
+ * Get the block explorer URL for a transaction hash
+ * Uses the chain's configured block explorer
+ */
+export const getExplorerTxUrl = (hash: string, chain: Chain): string => {
+  const explorer = chain.blockExplorers?.default
+  if (!explorer) return ''
+  return `${explorer.url}/tx/${hash}`
+}

@@ -64,16 +64,10 @@ const createGeneratorUtils = async (context: GeneratorContext): Promise<Generato
         if (policy === 'none') return
         if (policy === 'specialized' && !context.isSpecializedClient) return
 
-        const envKeysToCheck: string[] = []
-        // Pre-calculate keys to check existence
-        for (const [key, meta] of Object.entries(context.manifest.env)) {
-          const m = meta as { side?: EnvVisibility }
-          envKeysToCheck.push(generateEnvKey(key, data.alias || data.name, m.side))
-        }
-
         // We always proceed to injectEnvSnippet to ensure .env sync,
         // as injectEnvSnippet itself handles duplicate property avoidance in schema.ts.
         const serverLines: string[] = []
+        const serverEnvLines: string[] = []
         const clientLines: Record<ClientFrameworkId, string[]> = CLIENT_FRAMEWORKS.reduce(
           (acc, fw) => {
             acc[fw] = []
@@ -81,7 +75,13 @@ const createGeneratorUtils = async (context: GeneratorContext): Promise<Generato
           },
           {} as Record<ClientFrameworkId, string[]>
         )
-        const envLines: string[] = []
+        const clientEnvLines: Record<ClientFrameworkId, string[]> = CLIENT_FRAMEWORKS.reduce(
+          (acc, fw) => {
+            acc[fw] = []
+            return acc
+          },
+          {} as Record<ClientFrameworkId, string[]>
+        )
 
         for (const [key, meta] of Object.entries(context.manifest.env)) {
           const m = meta as {
@@ -106,26 +106,57 @@ const createGeneratorUtils = async (context: GeneratorContext): Promise<Generato
             for (const fw of CLIENT_FRAMEWORKS) {
               const keyName = generateEnvKey(key, data.alias || data.name, 'client', fw)
               clientLines[fw].push(`${keyName}: ${validation}${description}${defaultValue},`)
-              envLines.push(`${keyName}=${m.default || ''}`)
+              clientEnvLines[fw].push(`${keyName}=${m.default || ''}`)
             }
           } else {
             const serverKey = generateEnvKey(key, data.alias || data.name, 'server')
             serverLines.push(`${serverKey}: ${validation}${description}${defaultValue},`)
-            envLines.push(`${serverKey}=${m.default || ''}`)
+            serverEnvLines.push(`${serverKey}=${m.default || ''}`)
           }
         }
 
-        const envBlock = envLines.join('\n')
-
         if (serverLines.length > 0) {
-          await injectEnvSnippet(context.repoRoot, serverLines.join('\n'), 'server', envBlock)
+          await injectEnvSnippet(
+            context.repoRoot,
+            serverLines.join('\n'),
+            'server',
+            serverEnvLines.join('\n')
+          )
           summary.push('   Dynamically injected server env schema')
         }
+
+        // Resolve app directories per framework from kompo config
+        const { readKompoConfig } = await import('@kompo/kit')
+        const kompoConfig = readKompoConfig(context.repoRoot)
+        const appsByFramework: Record<string, string[]> = {}
+        if (kompoConfig?.apps) {
+          for (const [appPath, appConfig] of Object.entries(kompoConfig.apps)) {
+            if (appConfig.framework) {
+              if (!appsByFramework[appConfig.framework]) appsByFramework[appConfig.framework] = []
+              appsByFramework[appConfig.framework].push(path.join(context.repoRoot, appPath))
+            }
+          }
+        }
+
         for (const [fw, lines] of Object.entries(clientLines)) {
           if (lines.length > 0) {
             const block = lines.join('\n')
-            // Cast fw to any or FrameworkId because Object.entries keys are strings
-            await injectEnvSnippet(context.repoRoot, block, fw as ClientFrameworkId, envBlock)
+            const fwEnvBlock = clientEnvLines[fw as ClientFrameworkId]?.join('\n') || ''
+            const appDirs = appsByFramework[fw] || []
+            if (appDirs.length > 0) {
+              for (const appDir of appDirs) {
+                await injectEnvSnippet(
+                  context.repoRoot,
+                  block,
+                  fw as ClientFrameworkId,
+                  fwEnvBlock,
+                  appDir
+                )
+              }
+            } else {
+              // Fallback: inject .env only, warn about missing app
+              await injectEnvSnippet(context.repoRoot, block, fw as ClientFrameworkId, fwEnvBlock)
+            }
             summary.push(`   Dynamically injected ${fw} env schema`)
           }
         }
@@ -270,7 +301,12 @@ const createGeneratorUtils = async (context: GeneratorContext): Promise<Generato
         // Derived from env metadata if mapTo is present
         for (const [key, meta] of Object.entries(manifest.env)) {
           if (meta.mapTo) {
-            const envKey = generateEnvKey(key, ctx.alias || ctx.name || data.name, meta.side)
+            const envKey = generateEnvKey(
+              key,
+              ctx.alias || ctx.name || data.name,
+              meta.side,
+              meta.side === 'client' ? CLIENT_FRAMEWORKS[0] : undefined
+            )
             transformedMapping[meta.mapTo] = getEnvReference(envKey)
           }
         }
@@ -280,7 +316,12 @@ const createGeneratorUtils = async (context: GeneratorContext): Promise<Generato
           if (typeof mappingValue === 'string' && !mappingValue.includes('.')) {
             const envMeta = manifest.env?.[mappingValue]
             const side = envMeta?.side || 'client'
-            const envKey = generateEnvKey(mappingValue, ctx.alias || ctx.name || data.name, side)
+            const envKey = generateEnvKey(
+              mappingValue,
+              ctx.alias || ctx.name || data.name,
+              side,
+              side === 'client' ? CLIENT_FRAMEWORKS[0] : undefined
+            )
             transformedMapping[paramName] = getEnvReference(envKey)
           }
         }
@@ -374,7 +415,7 @@ export const createAdapterGenerator = (config: AdapterGeneratorConfig) => {
         (inputContext.driver?.id ? getDriverPackageName(scope, inputContext.driver.id) : undefined),
       tsconfigPath: path.relative(
         destinationDir,
-        path.join(inputContext.repoRoot, 'tsconfig.base.json')
+        path.join(inputContext.repoRoot, 'libs/config/tsconfig.base.json')
       ),
     }
 
@@ -387,9 +428,31 @@ export const createAdapterGenerator = (config: AdapterGeneratorConfig) => {
     const { generateEnvKey, getEnvReference, getVisibilityHeuristic } = await import(
       '../../utils/env-naming'
     )
-    templateData.generateEnvKey = (baseKey: string, visibility: EnvVisibility = 'server') =>
-      generateEnvKey(baseKey, alias, visibility)
+    templateData.generateEnvKey = (
+      baseKey: string,
+      visibility: EnvVisibility = 'server',
+      framework?: 'nextjs' | 'react' | 'vue' | 'nuxt'
+    ) =>
+      generateEnvKey(
+        baseKey,
+        alias,
+        visibility,
+        visibility === 'client' ? framework || CLIENT_FRAMEWORKS[0] : undefined
+      )
     templateData.getEnvReference = (fullKey: string) => getEnvReference(fullKey)
+
+    // Returns the actual env var name (with framework prefix if client-side)
+    // For use in process.env.* contexts (e.g. drizzle.config.ts run by drizzle-kit CLI)
+    templateData.getProcessEnvKey = (baseKey: string) => {
+      const envMeta = context.manifest?.env?.[baseKey]
+      const side = envMeta?.side || 'server'
+      return generateEnvKey(
+        baseKey,
+        alias,
+        side,
+        side === 'client' ? CLIENT_FRAMEWORKS[0] : undefined
+      )
+    }
 
     // [New] Smart getEnv helper
     templateData.getEnv = (baseKey: string) => {
@@ -416,11 +479,19 @@ export const createAdapterGenerator = (config: AdapterGeneratorConfig) => {
 
         // If it's not in our blueprint env, we might be trying to access a global/standard var.
         // We can allow heuristic or just basic naming.
-        return getEnvReference(generateEnvKey(baseKey, alias, getVisibilityHeuristic(baseKey)))
+        const vis = getVisibilityHeuristic(baseKey)
+        return getEnvReference(
+          generateEnvKey(baseKey, alias, vis, vis === 'client' ? CLIENT_FRAMEWORKS[0] : undefined)
+        )
       }
 
       // 3. Generate key and reference
-      const envKey = generateEnvKey(baseKey, alias, side)
+      const envKey = generateEnvKey(
+        baseKey,
+        alias,
+        side,
+        side === 'client' ? CLIENT_FRAMEWORKS[0] : undefined
+      )
       return getEnvReference(envKey)
     }
 

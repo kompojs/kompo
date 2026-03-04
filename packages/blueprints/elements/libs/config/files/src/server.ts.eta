@@ -1,16 +1,14 @@
-/**
- * Server-side environment configuration
- */
+import { z } from '@kompo/config'
 import { createEnv } from '@kompo/config/server'
-import { serverSchema } from './schema'
 
-export { createEnv }
+export { createEnv, z }
 
-/**
- * Server-side environment singleton
- */
+export const serverSchema = {
+  <%~ await it.hook('server-schema') %>
+}
+
 export const serverEnv = createEnv({
   server: serverSchema,
   client: {},
-  runtimeEnv: process.env,
+  runtimeEnv: (globalThis as any).process?.env ?? {},
 })

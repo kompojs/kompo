@@ -1,0 +1,14 @@
+{
+  "description": "Default React + Vite application with Tailwind CSS",
+  "steps": [
+    {
+      "command": "add",
+      "type": "app",
+      "name": "web",
+      "driver": "react",
+      "designSystem": "tailwind"
+    }
+  ],
+  "name": "Blank",
+  "id": "react.tailwind.blank"
+}

@@ -1,5 +1,0 @@
-<% if (it.apps[it.targetApp].framework === 'nextjs') { %>
-import { ThemeProvider } from 'next-themes'
-<% } else { %>
-import { ThemeProvider } from '@<%= it.scope %>/ui'
-<% } %>

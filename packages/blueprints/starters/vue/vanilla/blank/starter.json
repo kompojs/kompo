@@ -1,0 +1,13 @@
+{
+  "description": "Minimal Vue + Vite application without any CSS framework",
+  "steps": [
+    {
+      "command": "add",
+      "type": "app",
+      "name": "web",
+      "driver": "vue"
+    }
+  ],
+  "name": "Blank",
+  "id": "vue.vanilla.blank"
+}

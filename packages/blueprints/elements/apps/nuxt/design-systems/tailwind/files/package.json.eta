@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@<%= it.scope %>/ui-<%= it.family %>": "workspace:*",
+    "@<%= it.scope %>/config": "workspace:*"
+  },
+  "devDependencies": {
+    "tailwindcss": "catalog:",
+    "@tailwindcss/vite": "catalog:"
+  }
+}

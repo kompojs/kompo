@@ -1,7 +1,0 @@
-{
-  "id": "chakra",
-  "name": "Chakra UI",
-  "type": "design-system",
-  "description": "Chakra UI design system for Vite",
-  "framework": "vite"
-}

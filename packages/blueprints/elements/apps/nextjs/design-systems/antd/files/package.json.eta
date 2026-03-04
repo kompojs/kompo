@@ -3,7 +3,7 @@
     "antd": "catalog:",
     "@ant-design/icons": "catalog:",
     "@ant-design/nextjs-registry": "catalog:",
-    "@<%= it.scope %>/ui": "workspace:*",
+    "@<%= it.scope %>/ui-<%= it.family %>": "workspace:*",
     "@<%= it.scope %>/config": "workspace:*"
   }
 }

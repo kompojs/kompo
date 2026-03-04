@@ -10,7 +10,6 @@ interface ListPortOptions {
   installed?: boolean
   available?: boolean
   comingSoon?: boolean
-  enterprise?: boolean
 }
 
 export function createListCommand(_registry: KompoPluginRegistry): Command {
@@ -27,7 +26,7 @@ export function createListCommand(_registry: KompoPluginRegistry): Command {
       const config = readKompoConfig(cwd)
 
       if (!config) {
-        log.error(color.red('No kompo.config.json found. Run kompo new first.'))
+        log.error(color.red('No kompo.config.json found. Run kompo add app first.'))
         return
       }
 
@@ -66,7 +65,7 @@ export function createListCommand(_registry: KompoPluginRegistry): Command {
       const config = readKompoConfig(cwd)
 
       if (!config) {
-        log.error(color.red('No kompo.config.json found. Run kompo new first.'))
+        log.error(color.red('No kompo.config.json found. Run kompo add app first.'))
         return
       }
 
@@ -143,17 +142,14 @@ export function createListCommand(_registry: KompoPluginRegistry): Command {
       const capabilities = await getCapabilities()
 
       if (!config) {
-        log.error(color.red('No kompo.config.json found. Run kompo new first.'))
+        log.error(color.red('No kompo.config.json found. Run kompo add app first.'))
         return
       }
 
       const showAll =
-        options.all ||
-        (!options.installed && !options.available && !options.comingSoon && !options.enterprise)
+        options.all || (!options.installed && !options.available && !options.comingSoon)
       const showInstalled =
-        options.all ||
-        options.installed ||
-        (!options.available && !options.comingSoon && !options.enterprise)
+        options.all || options.installed || (!options.available && !options.comingSoon)
       const showAvailable = options.all || options.available
       const showComingSoon = options.all || options.comingSoon
 
@@ -232,7 +228,7 @@ export function createListCommand(_registry: KompoPluginRegistry): Command {
       const config = readKompoConfig(cwd)
 
       if (!config) {
-        log.error(color.red('No kompo.config.json found. Run kompo new first.'))
+        log.error(color.red('No kompo.config.json found. Run kompo add app first.'))
         return
       }
 
@@ -272,7 +268,7 @@ export function createListCommand(_registry: KompoPluginRegistry): Command {
       const config = readKompoConfig(cwd)
 
       if (!config) {
-        log.error(color.red('No kompo.config.json found. Run kompo new first.'))
+        log.error(color.red('No kompo.config.json found. Run kompo add app first.'))
         return
       }
 
@@ -396,7 +392,9 @@ export function createListCommand(_registry: KompoPluginRegistry): Command {
         }
       }
 
-      outro(`${starters.length} starters found. Use: ${color.blue('kompo new -t <id>')}`)
+      outro(
+        `${starters.length} starters found. Use: ${color.blue('kompo add app --template <id>')}`
+      )
     })
 
   return cmd

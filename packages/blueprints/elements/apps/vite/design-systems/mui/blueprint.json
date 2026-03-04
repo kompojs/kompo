@@ -1,7 +1,0 @@
-{
-  "id": "mui",
-  "name": "Material UI",
-  "type": "design-system",
-  "description": "Material UI design system for Vite",
-  "framework": "vite"
-}

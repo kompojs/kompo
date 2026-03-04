@@ -3,32 +3,21 @@
 import { Command } from 'commander'
 
 import color from 'picocolors'
-import { loadEnterpriseExtensions } from '../bootstrap/load-plugins'
 import { createAddCommand } from '../commands/add.command'
 import { aiCommand } from '../commands/ai/ai.command'
 import { createCatalogCommand } from '../commands/catalog.command'
 import { createDoctorCommand } from '../commands/doctor.command'
 import { createListCommand } from '../commands/list.command'
-import { createNewCommand } from '../commands/new.command'
 import { createRemoveCommand } from '../commands/remove.command'
-import { createUpgradeCommand } from '../commands/upgrade.command'
 import { createWireCommand } from '../commands/wire.command'
 import { createPluginRegistry } from '../registries/plugin.registry'
 import { applyHelpTheme, showHeader } from '../styles'
 import { getVersion } from '../utils'
-import { findRepoRoot } from '../utils/project'
 
 async function main() {
   const program = new Command()
   // outputError is configured recursively later
   const registry = createPluginRegistry()
-
-  // Try to find repo root and load enterprise extensions
-  const cwd = process.cwd()
-  const repoRoot = await findRepoRoot(cwd)
-  if (repoRoot) {
-    await loadEnterpriseExtensions(repoRoot)
-  }
 
   // Setup commands
   program
@@ -39,12 +28,10 @@ async function main() {
     .showHelpAfterError(true)
     .addHelpText('beforeAll', showHeader())
 
-  program.addCommand(createNewCommand(registry))
   program.addCommand(createAddCommand(registry))
   program.addCommand(createRemoveCommand(registry))
   program.addCommand(createListCommand(registry))
   program.addCommand(createDoctorCommand(registry))
-  program.addCommand(createUpgradeCommand())
   program.addCommand(createWireCommand(registry))
   program.addCommand(createCatalogCommand())
   program.addCommand(aiCommand)

@@ -34,21 +34,21 @@ export function getClientEnv<TClient extends Record<string, ZodTypeAny>>(
 }
 
 export function createEnvFactory<
-  ViteSchema extends Record<string, ZodTypeAny>,
+  ReactSchema extends Record<string, ZodTypeAny>,
   NextSchema extends Record<string, ZodTypeAny>,
 >(options: {
-  schemas: { [FRAMEWORKS.VITE]: ViteSchema; [FRAMEWORKS.NEXTJS]: NextSchema }
+  schemas: { [FRAMEWORKS.REACT]: ReactSchema; [FRAMEWORKS.NEXTJS]: NextSchema }
   runtimeEnv: Record<string, string | undefined>
 }) {
-  function getAppEnv(framework: typeof FRAMEWORKS.VITE): Readonly<InferEnvSchema<ViteSchema>>
+  function getAppEnv(framework: typeof FRAMEWORKS.REACT): Readonly<InferEnvSchema<ReactSchema>>
   function getAppEnv(framework: typeof FRAMEWORKS.NEXTJS): Readonly<InferEnvSchema<NextSchema>>
   function getAppEnv(
     framework?: ClientFrameworkId
-  ): Readonly<InferEnvSchema<ViteSchema | NextSchema>>
+  ): Readonly<InferEnvSchema<ReactSchema | NextSchema>>
   function getAppEnv(framework?: ClientFrameworkId) {
-    if (framework === FRAMEWORKS.VITE) {
+    if (framework === FRAMEWORKS.REACT || framework === FRAMEWORKS.VUE) {
       return getClientEnv({
-        client: options.schemas[FRAMEWORKS.VITE],
+        client: options.schemas[FRAMEWORKS.REACT],
         clientPrefix: 'VITE_',
         runtimeEnv: options.runtimeEnv,
       })
@@ -60,9 +60,16 @@ export function createEnvFactory<
         runtimeEnv: options.runtimeEnv,
       })
     }
+    if (framework === FRAMEWORKS.NUXT) {
+      return getClientEnv({
+        client: options.schemas[FRAMEWORKS.NEXTJS],
+        clientPrefix: 'NUXT_PUBLIC_',
+        runtimeEnv: options.runtimeEnv,
+      })
+    }
     // Default fallback or union if needed
     return getClientEnv({
-      client: { ...options.schemas[FRAMEWORKS.VITE], ...options.schemas[FRAMEWORKS.NEXTJS] },
+      client: { ...options.schemas[FRAMEWORKS.REACT], ...options.schemas[FRAMEWORKS.NEXTJS] },
       clientPrefix: '', // mixed
       runtimeEnv: options.runtimeEnv,
     })

@@ -235,7 +235,26 @@ export function createTemplateEngine(
     }
 
     const mergedNames = new Set<string>()
+    const existingNames = new Set<string>()
     const statements = existingFile.getStatements()
+
+    // Collect all top-level names from the existing file
+    for (const stmt of statements) {
+      if (
+        stmt.getKind() === SyntaxKind.FunctionDeclaration ||
+        stmt.getKind() === SyntaxKind.ClassDeclaration ||
+        stmt.getKind() === SyntaxKind.InterfaceDeclaration ||
+        stmt.getKind() === SyntaxKind.TypeAliasDeclaration
+      ) {
+        const n = (stmt as any).getName()
+        if (n) existingNames.add(n)
+      } else if (stmt.getKind() === SyntaxKind.VariableStatement) {
+        const decls = (stmt as any).getDeclarations()
+        for (const d of decls) {
+          existingNames.add(d.getName())
+        }
+      }
+    }
 
     for (const statement of statements) {
       let shouldComment = false
@@ -396,8 +415,15 @@ ${text}
         }
       }
 
-      if (name && mergedNames.has(name)) {
-        continue // Skip appending if merged
+      if (name && (mergedNames.has(name) || existingNames.has(name))) {
+        continue // Skip if already merged or already exists in the file
+      }
+
+      // For unnamed statements (if blocks, expression statements), deduplicate by text
+      if (!name) {
+        const newText = statement.getText().trim()
+        const alreadyExists = statements.some((s) => s.getText().trim() === newText)
+        if (alreadyExists) continue
       }
 
       existingFile.addStatements(statement.getText())

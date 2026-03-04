@@ -3,8 +3,13 @@
     "DATABASE_URL": {
       "description": "PGlite connection string (memory:// or file://path or idb://)",
       "validation": "z.string()",
+      "side": "server",
+      "default": "idb://"
+    },
+    "CLIENT_DATABASE_URL": {
+      "description": "PGlite connection string (memory:// or file://path or idb://)",
+      "validation": "z.string()",
       "side": "client",
-      "mapTo": "url",
       "default": "idb://"
     }
   },

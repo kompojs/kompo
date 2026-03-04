@@ -71,16 +71,16 @@ program
       process.exit(1)
     }
 
-    // 3. Initialize Project (Kompo New)
+    // 3. Initialize Project (Kompo Add App)
     s.stop('Dependencies installed!')
 
     console.log('') // Spacer
     intro(color.bgGreen(color.black(' INITIALIZING PROJECT ')))
 
     try {
-      const args = ['kompo', 'new']
+      const args = ['kompo', 'add', 'app']
       if (options.template) {
-        args.push('--yes', '--template', options.template)
+        args.push('--template', options.template)
         console.log(color.dim(`Applying template: ${options.template}...`))
       } else {
         console.log(color.dim('Running interactive setup...'))

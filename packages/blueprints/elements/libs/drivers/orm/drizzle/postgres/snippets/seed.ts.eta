@@ -1,0 +1,28 @@
+import { db } from './db'
+import * as schema from './schema'
+
+/**
+ * Database seed (server-side driver)
+ * Tables are managed via drizzle-kit push/migrate.
+ * Run `pnpm db:push` before seeding.
+ */
+export async function seed() {
+  console.log('🌱 Starting database seed...')
+
+  try {
+    // TODO: Add your seed data below
+    // Example:
+    // await db.insert(schema.myTable).values([{ ... }])
+
+    const tables = Object.keys(schema)
+    console.log(`✅ Seed complete (tables: ${tables.join(', ')})`)
+  } catch (error) {
+    console.error('❌ Seeding failed:', error)
+    ;(globalThis as any).process?.exit?.(1)
+  }
+}
+
+// Run seed if this file is executed directly
+if (import.meta.url === `file://${(globalThis as any).process?.argv?.[1] || ''}`) {
+  seed()
+}

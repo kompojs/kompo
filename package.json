@@ -25,14 +25,13 @@
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "prepare": "husky",
-    "sort": "sort-package-json \"package.json\" \"apps/*/package.json\" \"libs/*/package.json\"",
+    "sort": "sort-package-json \"package.json\" \"apps/*/package.json\" \"libs/**/package.json\"",
     "test": "turbo run test",
     "test:e2e": "./scripts/test-e2e.sh",
-    "type-check": "turbo run type-check",
-    "ui:add": "pnpm --filter=@org/ui exec pnpm dlx shadcn@latest add"
+    "type-check": "turbo run type-check"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.10",
+    "@biomejs/biome": "^2.4.5",
     "@changesets/cli": "^2.29.8",
     "@commitlint/cli": "^20.3.1",
     "@commitlint/config-conventional": "^20.3.1",
@@ -56,6 +55,9 @@
     "pnpm": ">=10.28.1"
   },
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "node-pty"
+    ],
     "overrides": {
       "@isaacs/brace-expansion": "5.0.1",
       "@types/node": "^20.10.0",

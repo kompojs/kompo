@@ -13,6 +13,7 @@ export const appBlueprintSchema = baseBlueprintSchema.extend({
   type: z.literal('app'),
   framework: z.string().optional(),
   category: z.string().optional(),
+  features: z.array(z.string()).optional(),
   env: z.record(z.string(), z.any()).optional(),
 })
 

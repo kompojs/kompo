@@ -1,13 +1,21 @@
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http'
 import { drizzle } from 'drizzle-orm/neon-http'
 import { neon } from '@neondatabase/serverless'
+import { serverEnv } from '@<%= it.scope %>/config/server'
 import * as schema from './schema'
 
-const connectionString = process.env.<%= it.alias.toUpperCase().replace(/-/g, '_') %>_DATABASE_URL
+let _db: NeonHttpDatabase<typeof schema> | null = null
 
-if (!connectionString) {
-  throw new Error('<%= it.alias.toUpperCase().replace(/-/g, '_') %>_DATABASE_URL is not set')
+const getDb = () => {
+  if (!_db) {
+    const client = neon(<%= it.getEnv('DATABASE_URL') %>)
+    _db = drizzle(client, { schema })
+  }
+  return _db
 }
 
-const client = neon(connectionString)
-export const db: NeonHttpDatabase<typeof schema> = drizzle(client, { schema })
+export const db = new Proxy({} as NeonHttpDatabase<typeof schema>, {
+  get(_target, prop) {
+    return (getDb() as any)[prop]
+  },
+})

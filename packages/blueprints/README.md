@@ -36,7 +36,7 @@ packages/blueprints/
 
 ### `starter.json` (The Recipe)
 
-Located in `products/starters/...`. This is what the user selects when running `kompo new`.
+Located in `products/starters/...`. This is what the user selects when running `kompo add app --template <id>` or via the interactive starter picker.
 
 **Key Attributes:**
 
@@ -88,9 +88,9 @@ Located in `elements/...`. This defines a specific component (App, Adapter, Port
 
 ---
 
-## 3. How the CLI Works (`kompo new`)
+## 3. How the CLI Works (`kompo add app`)
 
-When you run `kompo new` (or select a starter interactively):
+When you run `kompo add app --template <id>` (or select a starter interactively):
 
 1.  **Selection**: The CLI loads the `starter.json` corresponding to your choice.
 2.  **Validation**: It validates the JSON against `starter.schema.json`.

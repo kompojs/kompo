@@ -39,6 +39,12 @@
             "category": {
               "type": "string"
             },
+            "features": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
             "env": {
               "type": "object",
               "additionalProperties": {}

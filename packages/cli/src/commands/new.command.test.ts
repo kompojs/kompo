@@ -58,7 +58,7 @@ vi.mock('@kompo/kit', async (importOriginal) => {
     readKompoConfig: vi.fn().mockReturnValue(null), // No config yet
     initKompoConfig: vi.fn(),
     upsertApp: vi.fn(),
-    getRequiredFeatures: vi.fn().mockReturnValue(['nextjs', 'vite']),
+    getRequiredFeatures: vi.fn().mockReturnValue(['nextjs', 'react']),
     updateCatalogFromFeatures: vi.fn(),
     addHistoryEntry: vi.fn(),
     updateCatalogSources: vi.fn(),
@@ -131,16 +131,17 @@ vi.mock('node:fs', async (importOriginal) => {
 })
 
 vi.mock('@kompo/blueprints', () => ({
+  listDesignSystems: vi.fn().mockReturnValue(['tailwind', 'shadcn']),
   getStarter: vi.fn().mockImplementation((name) => {
-    if ((name as string).includes('vite')) {
+    if ((name as string).includes('react')) {
       return {
-        id: 'vite-starter',
-        name: 'vite-starter',
-        description: 'Vite Starter',
-        path: '/path/to/vite/starter',
-        framework: 'vite',
+        id: 'react-starter',
+        name: 'react-starter',
+        description: 'React Starter',
+        path: '/path/to/react/starter',
+        framework: 'react',
         designSystem: 'tailwind',
-        steps: [{ command: 'add', type: 'app', name: 'web', driver: 'vite' }],
+        steps: [{ command: 'add', type: 'app', name: 'web', driver: 'react' }],
       }
     }
     return {
@@ -211,9 +212,9 @@ vi.mock('../registries/starter.registry', () => ({
       version: '1.0.0',
       type: 'app',
       category: 'app',
-      framework: name === 'vite' ? 'vite' : 'nextjs', // Infer framework from name
+      framework: name === 'react' ? 'react' : 'nextjs', // Infer framework from name
       steps: [
-        { command: 'add', type: 'app', name: 'app', driver: name === 'vite' ? 'vite' : 'nextjs' },
+        { command: 'add', type: 'app', name: 'app', driver: name === 'react' ? 'react' : 'nextjs' },
         { command: 'add', type: 'design-system', name: 'tailwind', app: 'app' },
       ],
     } as any // Cast to StarterManifest (mock)
@@ -228,7 +229,7 @@ describe('runNewCommand', () => {
     vi.mocked(prompts.select).mockReset()
     vi.mocked(prompts.text).mockReset()
 
-    vi.mocked(kit.getRequiredFeatures).mockReturnValue(['nextjs', 'vite'])
+    vi.mocked(kit.getRequiredFeatures).mockReturnValue(['nextjs', 'react'])
     // Default mocks for prompts to allow flow to complete
     vi.mocked(prompts.text).mockResolvedValue('test-project') // Org Name
     vi.mocked(prompts.select).mockResolvedValue('nextjs') // Frontend
@@ -250,7 +251,7 @@ describe('runNewCommand', () => {
     vi.mocked(prompts.select).mockResolvedValueOnce('nextjs') // Frontend
     vi.mocked(prompts.select).mockResolvedValueOnce('tailwind') // Design System
 
-    await runNewCommand(undefined, {}, {} as any)
+    await runNewCommand({}, {} as any)
 
     // Verify
     expect(kit.getRequiredFeatures).not.toHaveBeenCalled()
@@ -262,16 +263,16 @@ describe('runNewCommand', () => {
     vi.mocked(prompts.text).mockResolvedValueOnce('test-org').mockResolvedValueOnce('web') // Frontend App Name
 
     vi.mocked(prompts.select)
-      .mockResolvedValueOnce('vite') // Frontend
+      .mockResolvedValueOnce('react') // Frontend
       .mockResolvedValueOnce('tailwind') // Design System
-      .mockResolvedValueOnce('vite-starter') // Starter
+      .mockResolvedValueOnce('react-starter') // Starter
       .mockResolvedValueOnce('continue') // App exists prompt
 
-    await runNewCommand(undefined, {}, {} as any)
+    await runNewCommand({}, {} as any)
 
     expect(kit.updateCatalogFromFeatures).toHaveBeenCalledWith(
       expect.anything(), // repoRoot
-      expect.arrayContaining(['vite']) // Verify vite is included (normalization worked)
+      expect.arrayContaining(['react']) // Verify react is included (normalization worked)
     )
   })
 })

@@ -7,7 +7,7 @@ import { createFsEngine } from '../engine/fs-engine'
 import type { KompoPluginRegistry } from '../registries/plugin.registry'
 import { toCamelCase, toPascalCase } from '../utils'
 import { parseAdapterId, registerAppPortUsage } from '../utils/config'
-import { runFormat } from '../utils/format'
+import { runFormat, runSort } from '../utils/format'
 import { installDependencies } from '../utils/install'
 import { DEFAULT_ALIAS, getAdapterFactoryName } from '../utils/naming'
 import { ensureProjectContext, getApps, getTemplateEngine } from '../utils/project'
@@ -23,7 +23,7 @@ export function createWireCommand(_registry: KompoPluginRegistry): Command {
 
 export async function runWire(
   domainName: string,
-  options: { app?: string; nonInteractive?: boolean }
+  options: { app?: string; nonInteractive?: boolean; skipInstall?: boolean }
 ) {
   const cwd = process.cwd()
   const { repoRoot, config } = await ensureProjectContext(cwd)
@@ -379,9 +379,12 @@ export async function runWire(
   )
 
   runFormat(repoRoot)
+  runSort(repoRoot)
 
   // Install dependencies to ensure wirings are usable immediately
-  await installDependencies(repoRoot)
+  if (!options.skipInstall) {
+    await installDependencies(repoRoot)
+  }
 
   note(
     `Updated: ${color.blueBright(`${selectedApp}/src/composition/domains/${domainName}.ts`)}\n

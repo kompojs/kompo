@@ -14,7 +14,6 @@ import { walletCapability } from '../generators/capabilities/wallet.generator'
 export interface DriverManifest {
   id: string
   name: string
-  plan?: 'community' | 'enterprise'
   status?: 'enabled' | 'available' | 'coming-soon'
   description?: string
   runtime?: boolean
@@ -26,7 +25,6 @@ export interface ProviderManifest {
   id: string
   name: string
   description?: string
-  plan?: 'community' | 'enterprise'
   status?: 'enabled' | 'available' | 'coming-soon'
   drivers?: DriverManifest[]
 }
@@ -36,7 +34,6 @@ export interface CapabilityManifest {
   name: string
   kind: string
   description: string
-  plan?: 'community' | 'enterprise'
   status?: 'enabled' | 'available' | 'coming-soon'
   providers?: ProviderManifest[]
   hint?: string

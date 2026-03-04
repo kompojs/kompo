@@ -120,35 +120,44 @@ export const renderTemplatesStep: AdapterGeneratorStep = {
     }
 
     // 4. Render Infra (ORM-specific domain config from libs/adapters/<cap>/<prov>/infra)
+    // Only scaffold infra on first run. Subsequent adapters only add schemas via orm:generate-schema.
     const infraSource = path.join(templateBase, 'infra')
-    if (await utils.templates.exists(infraSource)) {
+    const infraPackageJson = path.join(infraDest, 'package.json')
+    const infraExists = await utils.fs.fileExists(infraPackageJson)
+
+    if (!infraExists && (await utils.templates.exists(infraSource))) {
       await utils.fs.ensureDir(infraDest)
-      await utils.templates.renderDir(infraSource, infraDest, templateData, {
-        merge: !context.overwrite,
-      })
+      await utils.templates.renderDir(infraSource, infraDest, templateData)
       utils.addSummary(`   Rendered infra to libs/infra/${infraName}`)
+    } else if (infraExists) {
+      utils.addSummary(`   ℹ️ Infra libs/infra/${infraName} already exists, skipping scaffold`)
     }
 
     // 5. Render Driver (Resolution based on factory)
-    // We use context.driverTemplatePath which is resolved in factory (could be shared/ or libs/drivers/)
+    // Only scaffold driver on first run. Never overwrite an existing driver.
     if (context.driverTemplatePath && context.driver?.id) {
       const driverId = context.driver.id
       const driverDest = path.join(context.repoRoot, 'libs/drivers', driverId)
+      const driverPackageJson = path.join(driverDest, 'package.json')
+      const driverExists = await utils.fs.fileExists(driverPackageJson)
 
-      const filesSource = path.join(context.driverTemplatePath, 'files')
+      if (!driverExists) {
+        const filesSource = path.join(context.driverTemplatePath, 'files')
 
-      // Ensure files directory exists in the blueprint
-      if (
-        (await utils.templates.exists(filesSource)) ||
-        (await utils.fs.fileExists(
-          path.join(context.repoRoot, 'packages/blueprints/elements', filesSource)
-        ))
-      ) {
-        await utils.fs.ensureDir(driverDest)
-        await utils.templates.renderDir(filesSource, driverDest, templateData)
-        utils.addSummary(
-          `   Rendered driver from ${context.driverTemplatePath} to libs/drivers/${driverId}`
-        )
+        if (
+          (await utils.templates.exists(filesSource)) ||
+          (await utils.fs.fileExists(
+            path.join(context.repoRoot, 'packages/blueprints/elements', filesSource)
+          ))
+        ) {
+          await utils.fs.ensureDir(driverDest)
+          await utils.templates.renderDir(filesSource, driverDest, templateData)
+          utils.addSummary(
+            `   Rendered driver from ${context.driverTemplatePath} to libs/drivers/${driverId}`
+          )
+        }
+      } else {
+        utils.addSummary(`   ℹ️ Driver libs/drivers/${driverId} already exists, skipping`)
       }
     }
 

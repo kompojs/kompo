@@ -71,7 +71,7 @@ export async function generateDomain(options: GenerateDomainOptions) {
     })
   }
 
-  // Generate Port (only if portName provided, typically from 'kompo new')
+  // Generate Port (only if portName provided, typically from 'kompo add app' starters)
   if (portName) {
     await generatePort({
       portName,
@@ -109,7 +109,7 @@ async function ensureDomainsLibrary(fs: any, templates: any, repoRoot: string, s
       file: 'tsconfig.json',
       template: `${DOMAIN_BLUEPRINT_ROOT}/tsconfig.json.eta`,
       data: {
-        tsconfigPath: path.relative(domainsDir, path.join(LIBS_DIR, 'config/tsconfig.json')),
+        tsconfigPath: path.relative(domainsDir, path.join(LIBS_DIR, 'config/tsconfig.base.json')),
       },
     },
   ]

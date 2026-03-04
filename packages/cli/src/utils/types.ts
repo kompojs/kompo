@@ -4,18 +4,8 @@ export interface TemplateConfig {
   description: string
   category: string
   tags: string[]
-  plans: {
-    community: {
-      frameworks: string[]
-    }
-    enterprise: {
-      frameworks: string[]
-    }
-  }
-  dependencies: {
-    community: string[]
-    enterprise: string[]
-  }
+  frameworks: string[]
+  dependencies: string[]
   history: Array<{
     action: string
     plugin?: string
@@ -27,5 +17,4 @@ export interface TemplateConfig {
 
 export interface TemplateOptions {
   framework?: string
-  plan?: 'community' | 'enterprise'
 }

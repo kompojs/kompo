@@ -1,12 +1,7 @@
+import { serverEnv } from '@<%= it.scope %>/config/server'
 import type { Config } from 'drizzle-kit'
 
-<%
-// drizz-kit always runs in Node, so we must use serverEnv
-const envObject = 'serverEnv'
-%>
-import { <%= envObject %> } from '@<%= it.scope %>/config/server'
-
-const connectionString = <%= envObject %>.<%= it.alias.toUpperCase().replace(/-/g, '_') %>_DATABASE_URL || 'memory://'
+const connectionString = <%= it.getEnv('DATABASE_URL') %> || 'memory://'
 
 if (connectionString?.startsWith('memory://') || connectionString?.startsWith('idb://')) {
   console.warn('⚠️ [Drizzle Studio] You are using an in-memory or IndexedDB database. Studio will be empty and might not work as expected.')

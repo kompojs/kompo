@@ -17,9 +17,11 @@ import { <%= adapter.factoryName %> } from '<%= adapter.importPath %>';
 // Instantiate adapters with configuration
 <% it.adapters.forEach(function(adapter) { %>
 <% if (adapter.isInstance) { %>const <%= adapter.variableName %> = <%= adapter.factoryName %>;
-<% } else { %>const <%= adapter.variableName %> = <%= adapter.factoryName %>({
-<% if (adapter.configMapping) { %><% Object.entries(adapter.configMapping).forEach(([key, value]) => { %>  <%= key %>: <%= value %>,
-<% }) %><% } %>});<% } %><% }) %>
+<% } else if (adapter.configMapping && Object.keys(adapter.configMapping).length > 0) { %>const <%= adapter.variableName %> = <%= adapter.factoryName %>({
+<% Object.entries(adapter.configMapping).forEach(([key, value]) => { %>  <%= key %>: <%= value %>,
+<% }) %>});
+<% } else { %>const <%= adapter.variableName %> = <%= adapter.factoryName %>();
+<% } %><% }) %>
 
 // Export all ports for use in the application
 export {

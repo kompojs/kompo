@@ -31,5 +31,6 @@
       "@libs/*": ["../../libs/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/plugin"]
 }

@@ -1,5 +1,7 @@
 import path from 'node:path'
 import { log, spinner } from '@clack/prompts'
+import type { FrameworkId } from '@kompo/config/constants'
+import { getFrameworkFamily } from '@kompo/config/constants'
 import { LIBS_DIR } from '@kompo/kit'
 import color from 'picocolors'
 import { createFsEngine } from '../../engine/fs-engine'
@@ -11,6 +13,17 @@ export interface DesignGeneratorContext {
   designSystem: DesignSystemId
   scope: string
   blueprintPath?: string
+  framework?: FrameworkId
+}
+
+/**
+ * Resolves the UI lib blueprint path based on framework family.
+ * e.g. react + tailwind → libs/ui/react/tailwind
+ *      nuxt + tailwind  → libs/ui/vue/tailwind
+ */
+function resolveUiLibPath(designSystem: string, framework?: string): string {
+  const family = getFrameworkFamily(framework ?? '')
+  return path.join('libs', 'ui', family, designSystem)
 }
 
 export async function generateDesignSystem(ctx: DesignGeneratorContext) {
@@ -30,25 +43,25 @@ export async function generateDesignSystem(ctx: DesignGeneratorContext) {
   // targetDir is usually .../apps/app-name
   const repoRoot = path.dirname(path.dirname(targetDir))
   const libsDir = LIBS_DIR
-  const libsUiDir = path.join(repoRoot, libsDir, 'ui')
+  const family = getFrameworkFamily(ctx.framework ?? '')
+  const uiLibDir = path.join(repoRoot, libsDir, `ui-${family}`)
 
-  // Render templates
-  // Template path: libs/ui/${designSystem}
-  const templatePath = path.join('libs', 'ui', designSystem)
-  const specificUiDir = path.join(libsUiDir, designSystem)
+  // Resolve family-scoped UI lib blueprint path (e.g. libs/ui/react/tailwind)
+  const templatePath = resolveUiLibPath(designSystem, ctx.framework)
 
   if (
     (await templates.exists(path.join(templatePath, 'files'))) &&
-    !(await fs.fileExists(path.join(specificUiDir, 'package.json')))
+    !(await fs.fileExists(path.join(uiLibDir, 'package.json')))
   ) {
     await templates.renderDir(
       path.join(templatePath, 'files'),
-      libsUiDir,
+      uiLibDir,
       {
         scope,
+        family,
         tsconfigPath: path.relative(
-          libsUiDir,
-          path.join(repoRoot, 'libs', 'config', 'tsconfig.json')
+          uiLibDir,
+          path.join(repoRoot, 'libs', 'config', 'tsconfig.base.json')
         ),
       },
       { merge: false }

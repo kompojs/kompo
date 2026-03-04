@@ -135,7 +135,7 @@ export function createDoctorCommand(_registry: KompoPluginRegistry): Command {
                   createdAt: new Date().toISOString(),
                   updatedAt: new Date().toISOString(),
                   // infer basics?
-                  framework: name.includes('api') ? FRAMEWORKS.EXPRESS : FRAMEWORKS.VITE,
+                  framework: name.includes('api') ? FRAMEWORKS.EXPRESS : FRAMEWORKS.REACT,
                 }
               }
             })

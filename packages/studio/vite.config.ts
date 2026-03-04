@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
@@ -30,11 +29,30 @@ function kompoConfigLoader() {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss(), kompoConfigLoader()],
+export default defineConfig(({ mode }) => ({
+  plugins: [react(), kompoConfigLoader()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
-})
+  // Library build for the client injector — self-contained, no external deps
+  // Bundles React, ReactDOM, lucide-react etc. so it works in ANY framework (Vue, Nuxt, plain HTML)
+  ...(mode === 'lib' && {
+    build: {
+      lib: {
+        entry: path.resolve(__dirname, 'src/client/injector.ts'),
+        name: 'KompoStudio',
+        formats: ['iife'],
+        fileName: () => 'kompo-studio.iife.js',
+      },
+      outDir: 'dist/client',
+      cssCodeSplit: false,
+      rollupOptions: {
+        output: {
+          inlineDynamicImports: true,
+        },
+      },
+    },
+  }),
+}))
