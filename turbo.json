@@ -26,6 +26,17 @@
     "clean": {
       "cache": false
     },
+    "docs:build": {
+      "dependsOn": ["^build"],
+      "outputs": [".vitepress/dist/**"]
+    },
+    "docs:dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "docs:preview": {
+      "cache": false
+    },
     "test": {
       "dependsOn": ["^build"]
     },
