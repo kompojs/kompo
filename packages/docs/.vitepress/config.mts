@@ -29,6 +29,7 @@ export default defineConfig({
         sidebar: [
           {
             text: 'Démarrage',
+            collapsed: false,
             items: [
               { text: 'Introduction', link: '/fr/intro' },
               { text: 'Démarrage Rapide', link: '/fr/quick-start' },
@@ -38,6 +39,7 @@ export default defineConfig({
           },
           {
             text: 'CLI',
+            collapsed: false,
             items: [
               { text: 'Vue d\'ensemble', link: '/fr/cli/overview' },
               {
@@ -56,6 +58,7 @@ export default defineConfig({
 
   themeConfig: {
     logo: '/logo.svg',
+    siteTitle: false,
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Introduction', link: '/intro' },
@@ -66,6 +69,7 @@ export default defineConfig({
     sidebar: [
       {
         text: 'Getting Started',
+        collapsed: false,
         items: [
           { text: 'Introduction', link: '/intro' },
           { text: 'Quick Start', link: '/quick-start' },
@@ -76,6 +80,7 @@ export default defineConfig({
       },
       {
         text: 'Understanding Kompo',
+        collapsed: false,
         items: [
           { text: 'Architecture', link: '/understand/architecture' },
           { text: 'Domain', link: '/understand/domain' },
@@ -89,6 +94,7 @@ export default defineConfig({
       },
       {
         text: 'CLI',
+        collapsed: false,
         items: [
           { text: 'Overview', link: '/cli/overview' },
           { text: 'Usage', link: '/cli/usage' },
@@ -106,6 +112,7 @@ export default defineConfig({
       },
       {
         text: 'Templates',
+        collapsed: false,
         items: [
           { text: 'Overview', link: '/templates/overview' },
           { text: 'NFT Marketplace', link: '/templates/nft-marketplace' },
@@ -116,10 +123,12 @@ export default defineConfig({
       },
       {
         text: 'Build',
+        collapsed: false,
         items: [{ text: 'Build Overview', link: '/build/overview' }],
       },
       {
         text: 'Deploy',
+        collapsed: false,
         items: [
           { text: 'Deploy Overview', link: '/deploy/overview' },
           { text: 'Platforms', link: '/deploy/platforms' },
@@ -129,6 +138,7 @@ export default defineConfig({
       },
       {
         text: 'Studio',
+        collapsed: false,
         items: [
           { text: 'Overview', link: '/studio/overview' },
           { text: 'Architecture Graph', link: '/studio/architecture-graph' },
@@ -138,6 +148,7 @@ export default defineConfig({
       },
       {
         text: 'Extensibility',
+        collapsed: false,
         items: [{ text: 'Extensibility', link: '/extensibility' }],
       },
     ],
