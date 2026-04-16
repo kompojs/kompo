@@ -1,15 +1,16 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { type Blueprint, getTemplatesDir } from '@kompo/blueprints'
+import { type Blueprint, createBlueprintRegistry } from '@kompojs/blueprints'
 import color from 'picocolors'
 import type { ProviderManifest } from '../registries/capability.registry'
 
 /**
  * Dynamically load providers for a capability from the blueprints registry.
- * Structure: @kompo/blueprints/elements/libs/adapters/<capability>/providers/<provider>/blueprint.json
+ * Structure: @kompojs/blueprints/elements/libs/adapters/<capability>/providers/<provider>/blueprint.json
  */
 export function loadProvidersFromBlueprints(capabilityId: string): ProviderManifest[] {
-  const templatesDir = getTemplatesDir()
+  const registry = createBlueprintRegistry(process.cwd())
+  const templatesDir = registry.getCoreTemplatesDir()
   const providersDir = join(templatesDir, 'libs', 'adapters', capabilityId, 'providers')
 
   if (!existsSync(providersDir)) return []
@@ -93,7 +94,7 @@ export async function loadBlueprint<T extends Blueprint = Blueprint>(
   }
 
   // 3. Validate Schema
-  const { blueprintSchema } = await import('@kompo/blueprints')
+  const { blueprintSchema } = await import('@kompojs/blueprints')
 
   try {
     const validated = blueprintSchema.parse(config)

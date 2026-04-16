@@ -1,12 +1,14 @@
-#!/usr/bin/env node
-
 import { Command } from 'commander'
 
 import color from 'picocolors'
 import { createAddCommand } from '../commands/add.command'
-import { aiCommand } from '../commands/ai/ai.command'
+import { createAiCommand } from '../commands/ai/ai.command'
+import { createAiServeCommand } from '../commands/ai/ai-serve.command'
+import { createAiSetupCommand } from '../commands/ai/ai-setup.command'
+import { createAiStatusCommand } from '../commands/ai/ai-status.command'
 import { createCatalogCommand } from '../commands/catalog.command'
 import { createDoctorCommand } from '../commands/doctor.command'
+import { createInitCommand } from '../commands/init.command'
 import { createListCommand } from '../commands/list.command'
 import { createRemoveCommand } from '../commands/remove.command'
 import { createWireCommand } from '../commands/wire.command'
@@ -28,13 +30,17 @@ async function main() {
     .showHelpAfterError(true)
     .addHelpText('beforeAll', showHeader())
 
+  program.addCommand(createInitCommand())
   program.addCommand(createAddCommand(registry))
   program.addCommand(createRemoveCommand(registry))
   program.addCommand(createListCommand(registry))
   program.addCommand(createDoctorCommand(registry))
   program.addCommand(createWireCommand(registry))
   program.addCommand(createCatalogCommand())
-  program.addCommand(aiCommand)
+  program.addCommand(createAiCommand())
+  program.addCommand(createAiSetupCommand())
+  program.addCommand(createAiServeCommand())
+  program.addCommand(createAiStatusCommand())
 
   // Apply help theme to all commands
   applyHelpTheme(program)

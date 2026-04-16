@@ -1,4 +1,10 @@
+import { existsSync } from 'node:fs'
 import { defineConfig } from 'vitest/config'
+
+const localBlueprintsPath = new URL(
+  '../../blueprints/packages/blueprints/src/index.ts',
+  import.meta.url
+).pathname
 
 export default defineConfig({
   test: {
@@ -15,8 +21,8 @@ export default defineConfig({
     },
     testTimeout: 10000,
     alias: {
-      '@kompo/kit': new URL('./kit/src/index.ts', import.meta.url).pathname,
-      '@kompo/blueprints': new URL('./blueprints/src/index.ts', import.meta.url).pathname,
+      '@kompojs/kit': new URL('./kit/src/index.ts', import.meta.url).pathname,
+      ...(existsSync(localBlueprintsPath) ? { '@kompojs/blueprints': localBlueprintsPath } : {}),
     },
   },
 })

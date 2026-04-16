@@ -1,10 +1,10 @@
 import nodeFs from 'node:fs'
 import path from 'node:path'
 import { intro, log, note } from '@clack/prompts'
-import { starterManifestSchema as blueprintValidationSchema, type Step } from '@kompo/blueprints'
-import type { StarterManifest } from '@kompo/blueprints/types'
-import { DESIGN_SYSTEMS, FRAMEWORKS } from '@kompo/config/constants'
-import { extractPluginsFromSteps, type ProjectStructure } from '@kompo/kit'
+import { starterManifestSchema as blueprintValidationSchema, type Step } from '@kompojs/blueprints'
+import type { StarterManifest } from '@kompojs/blueprints/types'
+import { DESIGN_SYSTEMS, FRAMEWORKS } from '@kompojs/config/constants'
+import { extractPluginsFromSteps, type ProjectStructure } from '@kompojs/kit'
 import color from 'picocolors'
 import { createFsEngine } from '../engine/fs-engine'
 
@@ -62,21 +62,22 @@ export async function loadStarterFromTemplateArg(
       process.exit(1)
     }
 
-    const { getStarter, listStarters } = await import('@kompo/blueprints')
-    const starter = getStarter(template)
+    const { createBlueprintRegistry } = await import('@kompojs/blueprints')
+    const starterRegistry = createBlueprintRegistry(process.cwd())
+    const resolved = starterRegistry.resolveStarter(template)
 
-    if (!starter) {
+    if (!resolved) {
       log.error(`Starter "${template}" not found.`)
 
       // Show available starters to help the user
-      const starters = listStarters()
+      const starters = starterRegistry.listStarters()
 
       if (starters.length > 0) {
         log.message('')
         log.message('Available starters:')
         for (const s of starters.slice(0, 8)) {
-          const desc = s.description ? color.dim(` - ${s.description}`) : ''
-          log.message(`  ${color.green(s.id)}${desc}`)
+          const desc = s.starter.description ? color.dim(` - ${s.starter.description}`) : ''
+          log.message(`  ${color.green(s.starter.id)}${desc}`)
         }
         if (starters.length > 8) {
           log.message(color.dim(`  ... and ${starters.length - 8} more`))
@@ -88,6 +89,8 @@ export async function loadStarterFromTemplateArg(
       log.message(`Or run ${color.cyan('kompo add app')} for interactive mode`)
       process.exit(1)
     }
+
+    const starter = resolved.starter
 
     // Security Check (same as interactive)
     if (starter.path) {

@@ -3,7 +3,7 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [
-    ["@kompo/*", "@kompo-dev/create-kompo", "create-kompo", "create-kompo-dev"]
+    ["@kompojs/*", "@kompojs/core", "@kompojs/create-kompo", "create-kompo", "create-kompojs"]
   ],
   "linked": [],
   "access": "public",

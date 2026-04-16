@@ -4,8 +4,8 @@
 
 import nodeFs from 'node:fs'
 import path from 'node:path'
-import { hasBlueprintSnippet } from '@kompo/blueprints'
-import type { FsEngine, TemplateEngine } from '@kompo/kit'
+import { createBlueprintRegistry } from '@kompojs/blueprints'
+import type { FsEngine, TemplateEngine } from '@kompojs/kit'
 import { Eta } from 'eta'
 import { glob } from 'glob'
 import { type ExportDeclaration, Project, type SourceFile, SyntaxKind } from 'ts-morph'
@@ -482,6 +482,13 @@ ${text}
     // 3. Default: Overwrite
     await fs.writeFile(targetPath, content)
   }
+
+  // Lazy registry for snippet checks
+  const _snippetRegistry = createBlueprintRegistry(
+    templateRoots[0]?.replace(/\/elements$/, '') || process.cwd()
+  )
+  const hasBlueprintSnippet = (sourcePath: string, snippetName: string) =>
+    _snippetRegistry.hasBlueprintSnippet(sourcePath, snippetName)
 
   // Define helper for rendering content with hooks
   const renderContent = async (content: string, data: Record<string, unknown>): Promise<string> => {

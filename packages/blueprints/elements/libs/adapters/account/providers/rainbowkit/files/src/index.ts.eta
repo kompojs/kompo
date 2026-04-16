@@ -1,2 +1,0 @@
-export * from './adapter'
-export { ProfileCard as ShadcnProfileCard } from './ui/shadcn/profile-card'

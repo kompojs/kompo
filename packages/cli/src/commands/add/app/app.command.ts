@@ -5,7 +5,7 @@ import {
   FRAMEWORKS,
   type FrameworkId,
   getFrameworkFamily,
-} from '@kompo/config/constants'
+} from '@kompojs/config/constants'
 import {
   addStep,
   ensureKompoCatalog,
@@ -13,10 +13,12 @@ import {
   initKompoConfig,
   mergeBlueprintCatalog,
   readKompoConfig,
+  resolveCatalogReferences,
+  resolveWorkspaceReferences,
   updateCatalogFromFeatures,
   updateCatalogSources,
   upsertApp,
-} from '@kompo/kit'
+} from '@kompojs/kit'
 import { Command } from 'commander'
 import color from 'picocolors'
 import { createFsEngine } from '../../../engine/fs-engine'
@@ -73,20 +75,22 @@ export async function runAddApp(
   let config = readKompoConfig(repoRoot)
 
   if (!config) {
-    // New project: always prompt for organization explicitly so the user
-    // consciously chooses their namespace. We intentionally ignore any
-    // --org or --yes flags here.
-    const response = await text({
-      message: 'Organization name (namespace for your packages)',
-      defaultValue: DEFAULT_ORG,
-      placeholder: DEFAULT_ORG,
-    })
-    if (isCancel(response)) {
-      cancel('Cancelled')
-      process.exit(0)
+    // New project: prompt for organization unless --yes or --org is provided
+    let orgForInit: string
+    if (options.yes || options.org) {
+      orgForInit = options.org || DEFAULT_ORG
+    } else {
+      const response = await text({
+        message: 'Organization name (namespace for your packages)',
+        defaultValue: DEFAULT_ORG,
+        placeholder: DEFAULT_ORG,
+      })
+      if (isCancel(response)) {
+        cancel('Cancelled')
+        process.exit(0)
+      }
+      orgForInit = (response as string) || DEFAULT_ORG
     }
-
-    const orgForInit = (response as string) || DEFAULT_ORG
     initKompoConfig(repoRoot, `${orgForInit}-project`, orgForInit)
     ensureKompoCatalog(repoRoot)
 
@@ -143,20 +147,21 @@ export async function runAddApp(
         }
 
         if (choice === 'starter') {
-          // Delegate to starter list prompt (reusing listStarters)
-          const { listStarters } = await import('@kompo/blueprints')
-          const starters = listStarters()
-          if (starters.length === 0) {
+          // Delegate to starter list prompt (reusing registry)
+          const { createBlueprintRegistry } = await import('@kompojs/blueprints')
+          const appRegistry = createBlueprintRegistry(repoRoot)
+          const resolvedStarters = appRegistry.listStarters()
+          if (resolvedStarters.length === 0) {
             log.error(color.red('No starters available. Please update your installation.'))
             process.exit(1)
           }
 
           const starterChoice = await select({
             message: 'Select a starter',
-            options: starters.map((s) => ({
-              label: s.name || s.id,
-              value: s.id,
-              hint: s.description,
+            options: resolvedStarters.map((rs) => ({
+              label: rs.starter.name || rs.starter.id,
+              value: rs.starter.id,
+              hint: rs.starter.description,
             })),
           })
           if (isCancel(starterChoice)) {
@@ -339,7 +344,8 @@ export async function runAddApp(
   })
 
   // Catalog
-  const { getBlueprintCatalogPath } = await import('@kompo/blueprints')
+  const { createBlueprintRegistry } = await import('@kompojs/blueprints')
+  const catalogRegistry = createBlueprintRegistry(repoRoot)
   const { mergeBlueprintScripts } = await import('../../../utils/scripts')
 
   const mergeCatalogFor = async (
@@ -347,7 +353,7 @@ export async function runAddApp(
     blueprintPath: string,
     context: Record<string, any> = {}
   ) => {
-    const catalogPath = getBlueprintCatalogPath(blueprintPath)
+    const catalogPath = catalogRegistry.getBlueprintCatalogPath(blueprintPath)
     if (catalogPath) {
       mergeBlueprintCatalog(repoRoot, name, catalogPath)
       await mergeBlueprintScripts(repoRoot, blueprintPath, {
@@ -371,6 +377,32 @@ export async function runAddApp(
   const features = getRequiredFeatures(framework as string, designSystem)
   updateCatalogFromFeatures(repoRoot, features)
   updateCatalogSources(repoRoot, features)
+
+  // Regenerate catalog now that config has full app info (framework + designSystem)
+  // This ensures design system catalogs are included in the final catalog
+  const { regenerateCatalog } = await import('../../../utils/catalog.utils')
+  await regenerateCatalog(repoRoot, { silent: true })
+
+  // Resolve all "catalog:" references in generated package.json files
+  // This replaces pnpm-specific "catalog:" with actual versions from kompo.catalog.json
+  // making the output compatible with all package managers (bun, npm, yarn, pnpm)
+  const { readdirSync, existsSync } = await import('node:fs')
+  const resolveAllRefs = async (dir: string) => {
+    if (!existsSync(dir)) return
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        const pkgJson = path.join(dir, entry.name, 'package.json')
+        if (existsSync(pkgJson)) {
+          resolveCatalogReferences(repoRoot, pkgJson)
+          await resolveWorkspaceReferences(repoRoot, pkgJson)
+        }
+        await resolveAllRefs(path.join(dir, entry.name))
+      }
+    }
+  }
+  // kompo adds files only on apps and libs directories
+  await resolveAllRefs(path.join(repoRoot, 'apps'))
+  await resolveAllRefs(path.join(repoRoot, 'libs'))
 
   runSort(repoRoot)
   if (!options.skipInstall) {

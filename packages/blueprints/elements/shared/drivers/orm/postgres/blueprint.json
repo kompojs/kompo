@@ -1,7 +1,0 @@
-{
-  "name": "postgres",
-  "provides": {
-    "driver": "postgres"
-  },
-  "id": "postgres"
-}

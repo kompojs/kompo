@@ -1,2 +1,0 @@
-export * from './adapter'
-export { KompoWalletProvider as ShadcnKompoWalletProvider } from './ui/shadcn-provider'

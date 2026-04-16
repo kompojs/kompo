@@ -36,7 +36,7 @@ vi.mock('../../../utils/project', () => ({
 
 vi.mock('../../../generators/domain.generator')
 vi.mock('../../../utils/format')
-vi.mock('@kompo/kit', () => ({
+vi.mock('@kompojs/kit', () => ({
   readKompoConfig: vi.fn(() => ({
     version: 1,
     project: { name: 'test', org: 'test-org' },

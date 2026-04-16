@@ -1,7 +1,0 @@
-{
-  "extends": "<%= it.tsconfigPath %>",
-  "compilerOptions": {
-    "types": ["@cloudflare/workers-types"]
-  },
-  "include": ["src"]
-}

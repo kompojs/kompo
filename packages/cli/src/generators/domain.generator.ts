@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { LIBS_DIR } from '@kompo/kit'
+import { LIBS_DIR } from '@kompojs/kit'
 import { createFsEngine } from '../engine/fs-engine'
 import { getTemplateEngine } from '../utils'
 import { injectDependencies } from '../utils/dependencies'

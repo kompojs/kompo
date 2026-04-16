@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { getFrameworkCompositionTemplates, hasBlueprintSnippet } from '@kompo/blueprints'
+import { createBlueprintRegistry } from '@kompojs/blueprints'
 import { createFsEngine } from '../engine/fs-engine'
 import { LIBS_DIR, readKompoConfig } from './config'
 import { getTemplateEngine } from './project'
@@ -21,6 +21,7 @@ export async function generateComposition(
   if (!config) return
 
   const templates = await getTemplateEngine(blueprintPath, repoRoot)
+  const registry = createBlueprintRegistry(repoRoot)
   const appPath = path.join(repoRoot, 'apps', targetApp)
   const compositionDir = path.join(appPath, 'src', 'composition')
   await fs.ensureDir(compositionDir)
@@ -84,7 +85,7 @@ export async function generateComposition(
       : null,
     // Add a helper to check snippet existence from within Eta
     hasSnippet: async (sourcePath: string, snippetName: string) => {
-      return hasBlueprintSnippet(sourcePath, snippetName)
+      return registry.hasBlueprintSnippet(sourcePath, snippetName)
     },
   }
 
@@ -93,7 +94,7 @@ export async function generateComposition(
   const frameworks = getFrameworksForTarget(repoRoot, targetApp)
 
   for (const fw of frameworks) {
-    const compositionTemplates = getFrameworkCompositionTemplates(fw)
+    const compositionTemplates = registry.getFrameworkCompositionTemplates(fw)
 
     for (const templatePath of compositionTemplates) {
       if (await templates.exists(templatePath)) {

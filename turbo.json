@@ -19,7 +19,7 @@
     "lint": {
       "dependsOn": ["^build"]
     },
-    "type-check": {
+    "typecheck": {
       "dependsOn": ["^build"]
     },
     "format": {},

@@ -1,6 +1,6 @@
 /**
  * Core Framework Constants
- * Copied from @kompo/kit to avoid dependency cycles
+ * Copied from @kompojs/kit to avoid dependency cycles
  */
 export const FRAMEWORKS = {
   NEXTJS: 'nextjs',

@@ -1,7 +1,0 @@
-{
-  "id": "clerk",
-  "name": "Clerk",
-  "version": "1.0.0",
-  "type": "adapter",
-  "family": "auth"
-}

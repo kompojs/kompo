@@ -27,7 +27,7 @@ vi.mock('../port/port.command')
 vi.mock('../../../utils/format')
 
 // Mock kit
-vi.mock('@kompo/kit', () => ({
+vi.mock('@kompojs/kit', () => ({
   readKompoConfig: vi.fn(() => ({
     version: 1,
     project: { name: 'test', org: 'test-org' },

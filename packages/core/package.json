@@ -1,0 +1,45 @@
+{
+  "name": "@kompojs/core",
+  "version": "0.1.1",
+  "description": "Code Orchestration Framework - Build apps 10x faster",
+  "type": "module",
+  "bin": {
+    "kompo": "./bin/kompo.js"
+  },
+  "files": [
+    "bin"
+  ],
+  "dependencies": {
+    "@kompojs/cli": "workspace:*",
+    "@kompojs/kit": "workspace:*",
+    "@kompojs/config": "workspace:*",
+    "@kompojs/blueprints": "^0.1.1",
+    "@kompojs/blueprints-nextjs": "^0.1.0",
+    "@kompojs/blueprints-react": "^0.1.1",
+    "@kompojs/blueprints-nuxt": "^0.1.1",
+    "@kompojs/blueprints-vue": "^0.1.1",
+    "@kompojs/blueprints-express": "^0.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "kompo",
+    "cli",
+    "scaffolding",
+    "monorepo",
+    "code-orchestration",
+    "ddd",
+    "hexagonal-architecture"
+  ],
+  "homepage": "https://github.com/kompojs/kompo#readme",
+  "bugs": {
+    "url": "https://github.com/kompojs/kompo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kompojs/kompo.git",
+    "directory": "packages/core"
+  },
+  "license": "MIT"
+}

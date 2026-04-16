@@ -1,7 +1,0 @@
-{
-  "name": "cockroachdb",
-  "provides": {
-    "driver": "cockroachdb"
-  },
-  "id": "cockroachdb"
-}

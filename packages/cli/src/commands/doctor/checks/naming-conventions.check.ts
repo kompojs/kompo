@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { LIBS_DIR } from '@kompo/kit'
+import { LIBS_DIR } from '@kompojs/kit'
 import { glob } from 'glob'
 import ts from 'typescript'
 import type { DoctorCheckResult } from '../doctor.check'

@@ -104,7 +104,7 @@ export const GLOBAL_VARIABLES = {
   },
 
   // Default ports
-  studioPort: 9000,
+  workbenchPort: 9000,
 } as const
 
 // Helper function to merge global variables with template data

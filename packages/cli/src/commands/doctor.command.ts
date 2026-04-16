@@ -9,9 +9,10 @@ import './doctor/checks/naming-conventions.check'
 import './doctor/checks/forbidden-imports.check'
 import './doctor/checks/ports-adapters.check'
 import './doctor/checks/config-sync.check'
+import './doctor/checks/cross-package-versions.check'
 import { confirm, isCancel } from '@clack/prompts'
-import { FRAMEWORKS } from '@kompo/config/constants'
-import { readKompoConfig, writeKompoConfig } from '@kompo/kit'
+import { FRAMEWORKS } from '@kompojs/config/constants'
+import { readKompoConfig, writeKompoConfig } from '@kompojs/kit'
 import { getApps, getDomains } from '../utils/project'
 
 // Helper to flatten results

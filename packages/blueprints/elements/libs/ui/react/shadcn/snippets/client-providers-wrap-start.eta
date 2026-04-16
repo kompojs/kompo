@@ -1,5 +1,0 @@
-<% if (it.apps[it.targetApp].framework === 'nextjs') { %>
-<ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-<% } else { %>
-<ThemeProvider defaultTheme="dark" storageKey="<%= it.targetApp %>-theme">
-<% } %>

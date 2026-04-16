@@ -1,7 +1,0 @@
-{
-  "name": "mysql",
-  "provides": {
-    "driver": "mysql"
-  },
-  "id": "mysql"
-}

@@ -1,7 +1,0 @@
-{
-  "id": "s3",
-  "name": "S3",
-  "version": "1.0.0",
-  "type": "adapter",
-  "family": "storage"
-}

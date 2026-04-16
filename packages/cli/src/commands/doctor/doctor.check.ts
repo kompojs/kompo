@@ -1,4 +1,4 @@
-import type { FsEngine } from '@kompo/kit'
+import type { FsEngine } from '@kompojs/kit'
 
 export type DoctorCheckContext = {
   repoRoot: string

@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process'
 import { log, taskLog } from '@clack/prompts'
+import { detectPackageManager } from '@kompojs/kit'
 import color from 'picocolors'
 
 /**
@@ -7,8 +8,9 @@ import color from 'picocolors'
  * Provides a standardized UI output with spinner/progress.
  */
 export async function installDependencies(repoRoot: string): Promise<void> {
+  const pm = detectPackageManager(repoRoot)
   const installLog = taskLog({
-    title: 'Installing dependencies',
+    title: `Installing dependencies (${pm.name})`,
     limit: 5,
   })
 
@@ -16,8 +18,9 @@ export async function installDependencies(repoRoot: string): Promise<void> {
   const errorLines: string[] = []
 
   try {
+    const [cmd, ...args] = pm.installCommand(['--ignore-scripts'])
     await new Promise<void>((resolve, reject) => {
-      const child = spawn('pnpm', ['install', '--ignore-scripts'], { cwd: repoRoot })
+      const child = spawn(cmd, args, { cwd: repoRoot })
 
       child.stdout?.on('data', (data: Buffer) => {
         const lines = data.toString().split('\n').filter(Boolean)
@@ -42,7 +45,7 @@ export async function installDependencies(repoRoot: string): Promise<void> {
         if (code === 0) {
           resolve()
         } else {
-          reject(new Error(`pnpm install exited with code ${code}`))
+          reject(new Error(`${pm.name} install exited with code ${code}`))
         }
       })
 
@@ -64,7 +67,7 @@ export async function installDependencies(repoRoot: string): Promise<void> {
       }
     }
 
-    log.warning(color.yellow('Please run "pnpm install" manually.'))
+    log.warning(color.yellow(`Please run "${pm.name} install" manually.`))
 
     // We re-throw so the caller knows it failed,
     // though the CLI might just proceed or exit depending on context.

@@ -1,3 +1,0 @@
-<% it.useCases.forEach(function(uc) { %>
-export * from './<%= uc %>/<%= uc %>.use-case'
-<% }) %>

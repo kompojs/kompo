@@ -1,7 +1,0 @@
-{
-  "name": "pglite",
-  "provides": {
-    "driver": "pglite"
-  },
-  "id": "pglite"
-}

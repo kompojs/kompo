@@ -1,6 +1,6 @@
 {
-  "name": "@kompo/tsconfig",
-  "version": "0.1.3-beta.6",
+  "name": "@kompojs/tsconfig",
+  "version": "0.1.0",
   "private": true,
   "files": [
     "base.json",
@@ -19,7 +19,7 @@
     "test:kompo:coverage": "pnpm -w exec turbo run test:coverage --filter='./packages/*'",
     "test:kompo:watch": "pnpm -w exec vitest -c packages/vitest.config.ts",
     "test:kompo": "pnpm -w exec turbo run test --filter='./packages/*'",
-    "type-check:kompo": "pnpm -w exec turbo run type-check --filter='./packages/*'"
+    "typecheck:kompo": "pnpm -w exec turbo run typecheck --filter='./packages/*'"
   },
   "devDependencies": {
     "prettier": "^3.5.0",

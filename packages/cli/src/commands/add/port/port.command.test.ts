@@ -57,15 +57,19 @@ vi.mock('@clack/prompts', () => ({
 }))
 
 // Mock kit
-vi.mock('@kompo/kit', () => ({
-  readKompoConfig: vi.fn(),
-  writeKompoConfig: vi.fn(),
-  LIBS_DIR: 'libs',
-  PORT_DEFINITIONS: [
-    { value: 'repository', icon: '📦', label: 'Repository', capabilities: ['orm'] },
-    { value: 'other', icon: '🔌', label: 'Other' },
-  ],
-}))
+vi.mock('@kompojs/kit', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@kompojs/kit')>()
+  return {
+    ...actual,
+    readKompoConfig: vi.fn(),
+    writeKompoConfig: vi.fn(),
+    LIBS_DIR: 'libs',
+    PORT_DEFINITIONS: [
+      { value: 'repository', icon: '📦', label: 'Repository', capabilities: ['orm'] },
+      { value: 'other', icon: '🔌', label: 'Other' },
+    ],
+  }
+})
 
 describe('runAddPort', () => {
   beforeEach(() => {

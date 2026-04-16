@@ -1,4 +1,4 @@
-import type { StarterManifest } from '@kompo/blueprints/types'
+import type { StarterManifest } from '@kompojs/blueprints/types'
 
 export interface StarterProvider {
   name: string

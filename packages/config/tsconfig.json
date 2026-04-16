@@ -1,5 +1,5 @@
 {
-  "extends": "@kompo/tsconfig/base.json",
+  "extends": "@kompojs/tsconfig/base.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": ".",

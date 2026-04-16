@@ -16,7 +16,7 @@
       "!**/.next",
       "!**/coverage",
       "!**/build",
-      "!packages/studio/src/components/ui/sidebar.tsx"
+      "!packages/workbench/src/components/ui/sidebar.tsx"
     ]
   },
   "formatter": {

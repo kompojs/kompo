@@ -1,7 +1,0 @@
-{
-  "extends": "<%= it.tsconfigPath %>",
-  "compilerOptions": {
-    "rootDir": "src"
-  },
-  "include": ["src"]
-}

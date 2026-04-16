@@ -1,104 +1,67 @@
 import * as p from '@clack/prompts'
 import { Command } from 'commander'
-import 'dotenv/config' // Load .env from cwd automatically
-import { OpenAI } from 'openai'
+import 'dotenv/config'
+import { checkQuota, KOMPO_MODEL, KOMPO_PROXY_PORT, readLicence, readQuota } from '@kompojs/ai'
 import color from 'picocolors'
 
-export const aiCommand = new Command('ai')
-  .description('Chat with an AI assistant (OpenAI or Ollama)')
-  .action(async () => {
-    const apiKey = process.env.KOMPO_AI_API_KEY || 'ollama' // Default to dummy key for Ollama
-    const baseURL = process.env.KOMPO_AI_BASE_URL || 'http://localhost:11434/v1'
-    let model = process.env.KOMPO_AI_MODEL || 'llama3'
+const PROXY_BASE = `http://localhost:${KOMPO_PROXY_PORT}`
 
-    const openai = new OpenAI({
-      apiKey,
-      baseURL,
-    })
+export function createAiCommand(): Command {
+  return new Command('ai')
+    .description('Chat with Kompo AI via the local proxy')
+    .action(async () => {
+      // Pre-flight: check proxy is running
+      const s = p.spinner()
+      s.start('Connecting to Kompo AI proxy...')
 
-    // Initial check for model availability
-    try {
-      model = await ensureModel(openai, model)
-    } catch (error) {
-      // If ensureModel fails (e.g. no connection or user cancelled), we exit gracefully
-      p.log.error(error instanceof Error ? error.message : String(error))
-      return
-    }
-
-    try {
-      await chatLoop(openai, model)
-    } catch (error) {
-      // This catch block handles errors that bubble up from chatLoop and are NOT handled there
-      p.log.error(error instanceof Error ? error.message : String(error))
-      p.outro('An error occurred.')
-    }
-  })
-
-/**
- * Ensures the requested model exists.
- * If not, tries to list available models and asks user to select one.
- * Returns the valid model name.
- */
-async function ensureModel(openai: OpenAI, model: string): Promise<string> {
-  const s = p.spinner()
-  s.start(`Checking model '${model}' availability...`)
-
-  try {
-    // For standard OpenAI, retrieving a specific model is GET /models/{model}
-    // For Ollama (openai compat), this should work too if the model exists.
-    await openai.models.retrieve(model)
-    s.stop(`Model '${model}' is ready.`)
-    return model
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error)
-
-    // Check if it's a 404 (Model not found)
-    const status =
-      error && typeof error === 'object' && 'status' in error
-        ? (error as { status: number }).status
-        : undefined
-    if (msg.includes('404') || status === 404) {
-      s.stop(`Model '${model}' not found.`) // Consolidate spinner stop and log warning
-
+      let proxyOk = false
       try {
-        const s2 = p.spinner()
-        s2.start('Fetching available models...')
-        const list = await openai.models.list()
-        s2.stop('Available models found.') // Minimal message
-
-        if (list.data.length > 0) {
-          const selected = await p.select({
-            message: 'Select an available model to use:',
-            options: list.data.map((m) => ({ value: m.id, label: m.id })),
-          })
-
-          if (p.isCancel(selected)) {
-            p.outro('Operation cancelled.')
-            process.exit(0)
-          }
-
-          p.note(`Using model: ${selected}`, 'Config Updated')
-          return selected as string
-        } else {
-          p.log.error('No models found on the server.')
-        }
-      } catch (_listError) {
-        p.log.error('Failed to list models.')
+        const res = await fetch(`${PROXY_BASE}/health`)
+        proxyOk = res.ok
+      } catch {
+        // not running
       }
 
-      p.log.message(`👉 Try running: ${color.cyan(`ollama pull ${model}`)}`)
-      throw new Error(`Model '${model}' not found and no alternative selected.`)
-    } else {
-      // Other error (connection, auth, etc)
-      throw error
-    }
-  }
+      if (!proxyOk) {
+        s.stop(color.red('Proxy not running'))
+        p.log.error(`Start the proxy first: ${color.cyan('kompo ai:serve')}`)
+        p.log.message(`  Or run ${color.cyan('kompo ai:setup')} if you haven't set up yet.`)
+        return
+      }
+
+      s.stop(color.green('Connected to proxy'))
+
+      // Show quota info
+      const licence = readLicence()
+      if (licence) {
+        const quota = readQuota(licence.licenceKey)
+        if (quota) {
+          const check = checkQuota(quota)
+          if (!check.allowed) {
+            const reason =
+              check.reason === 'daily_limit'
+                ? 'Daily token limit reached. Resets at midnight UTC.'
+                : `Monthly quota reached. Manage your plan → ${color.cyan('kompo workbench')}`
+            p.log.error(reason)
+            return
+          }
+          if (check.warning) {
+            p.log.warn(check.warning)
+          }
+        }
+      }
+
+      await chatLoop()
+    })
 }
 
-async function chatLoop(openai: OpenAI, model: string) {
+async function chatLoop() {
   p.intro(
-    `${color.bgCyan(color.black(' kompo ai '))}${color.bgMagenta(` ${color.bold(color.white(model))} `)}`
+    `${color.bgCyan(color.black(' kompo ai '))}${color.bgMagenta(` ${color.bold(color.white(KOMPO_MODEL))} `)}`
   )
+  p.log.message(color.dim(`  Proxy: ${PROXY_BASE} | Type "exit" to quit`))
+
+  const messages: Array<{ role: string; content: string }> = []
 
   while (true) {
     try {
@@ -115,44 +78,82 @@ async function chatLoop(openai: OpenAI, model: string) {
             input.trim() === '\\quit'))
       ) {
         p.outro('Bye!')
-        process.exit(0)
+        return
       }
 
       if (typeof input === 'string' && input.trim()) {
-        await runStream(openai, model, input)
+        messages.push({ role: 'user', content: input.trim() })
+        await runStream(messages)
       }
     } catch (error) {
-      // Since we checked model at startup, runtime errors are likely transient or critical.
       const msg = error instanceof Error ? error.message : String(error)
+      if (msg.includes('quota_exceeded') || msg.includes('429')) {
+        p.log.error(`Token limit reached. Check your status: ${color.cyan('kompo ai:status')}`)
+        return
+      }
       p.log.error(msg)
-      // We continue the loop to allow retrying
     }
   }
 }
 
-async function runStream(openai: OpenAI, model: string, userContent: string) {
+async function runStream(messages: Array<{ role: string; content: string }>) {
   const s = p.spinner()
   s.start('Thinking...')
 
-  let stream: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>
-  try {
-    stream = await openai.chat.completions.create({
-      model,
-      messages: [{ role: 'user', content: userContent }],
+  const res = await fetch(`${PROXY_BASE}/v1/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: KOMPO_MODEL,
+      messages,
       stream: true,
-    })
-    s.stop('Connected')
-  } catch (error) {
+    }),
+  })
+
+  if (!res.ok) {
     s.stop('Error')
-    throw error
+    const body = await res.json().catch(() => ({ error: { message: res.statusText } }))
+    throw new Error(body.error?.message ?? `Proxy error: ${res.status}`)
   }
+
+  if (!res.body) {
+    s.stop('Error')
+    throw new Error('No response body from proxy')
+  }
+
+  s.stop('')
+
+  let fullContent = ''
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
 
   await p.stream.step(
     (async function* () {
-      for await (const chunk of stream) {
-        const delta = chunk.choices[0]?.delta?.content || ''
-        yield delta
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const text = decoder.decode(value)
+        const lines = text.split('\n').filter((l) => l.startsWith('data: '))
+
+        for (const line of lines) {
+          const data = line.slice(6)
+          if (data === '[DONE]') continue
+
+          try {
+            const chunk = JSON.parse(data)
+            const content = chunk.choices?.[0]?.delta?.content
+            if (content) {
+              fullContent += content
+              yield content
+            }
+          } catch {
+            // skip malformed SSE
+          }
+        }
       }
     })()
   )
+
+  messages.push({ role: 'assistant', content: fullContent })
 }

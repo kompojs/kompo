@@ -1,6 +1,6 @@
 import { cancel } from '@clack/prompts'
-import type { FrameworkId } from '@kompo/config/constants'
-import { type KompoConfig, LIBS_DIR, readKompoConfig, writeKompoConfig } from '@kompo/kit'
+import type { FrameworkId } from '@kompojs/config/constants'
+import { type KompoConfig, LIBS_DIR, readKompoConfig, writeKompoConfig } from '@kompojs/kit'
 import { DEFAULT_ALIAS } from './naming'
 
 export function parseAdapterId(adapterId: string) {

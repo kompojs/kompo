@@ -1,4 +1,4 @@
-import { readKompoConfig } from '@kompo/kit'
+import { readKompoConfig } from '@kompojs/kit'
 import { getApps, getDomains } from '../../../utils/project'
 import type { DoctorCheck, DoctorCheckContext, DoctorCheckResult } from '../doctor.check'
 import { registerDoctorCheck } from '../doctor.registry'

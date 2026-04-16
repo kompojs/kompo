@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '@kompo/blueprints/types'
+import type { FeatureManifest } from '@kompojs/blueprints/types'
 
 export interface FeatureProvider {
   name: string

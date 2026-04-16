@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { cancel, isCancel, log, select } from '@clack/prompts'
-import { LIBS_DIR, readKompoConfig } from '@kompo/kit'
+import { LIBS_DIR, readKompoConfig } from '@kompojs/kit'
 import color from 'picocolors'
 import { createFsEngine } from '../../../engine/fs-engine'
 import { toPascalCase } from '../../../utils'

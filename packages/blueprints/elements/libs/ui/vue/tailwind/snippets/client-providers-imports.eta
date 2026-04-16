@@ -1,1 +1,0 @@
-import ThemeProvider from '@<%= it.scope %>/ui-<%= it.family %>/components/ThemeProvider.vue'

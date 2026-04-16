@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { log } from '@clack/prompts'
 
-import type { FeatureManifest } from '@kompo/blueprints/types'
+import type { FeatureManifest } from '@kompojs/blueprints/types'
 import color from 'picocolors'
 import { createFsEngine } from '../../../engine/fs-engine'
 import {
@@ -20,7 +20,7 @@ import { runAddUseCase } from '../use-case/use-case.command'
 registerFeatureProvider({
   name: 'OSS Features',
   getFeature: async (name) => {
-    const { getFeature } = await import('@kompo/blueprints')
+    const { getFeature } = await import('@kompojs/blueprints')
     const feature = getFeature(name)
     if (feature) return feature
     return null

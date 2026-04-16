@@ -12,9 +12,9 @@ export interface DesignSystem {
   hint: string
 }
 
-import { listDesignSystems } from '@kompo/blueprints'
-import type { DesignSystemId } from '@kompo/config/constants'
-import { getFrameworkFamily } from '@kompo/config/constants'
+import { createBlueprintRegistry } from '@kompojs/blueprints'
+import type { DesignSystemId } from '@kompojs/config/constants'
+import { getFrameworkFamily } from '@kompojs/config/constants'
 
 /**
  * Metadata for hardcoded descriptions (fallback/enrichment)
@@ -35,7 +35,8 @@ const DS_METADATA: Record<string, Partial<DesignSystem>> = {
 
 export function getAvailableDesignSystems(framework?: string): DesignSystem[] {
   const family = framework ? getFrameworkFamily(framework) : undefined
-  const discoveredIds = listDesignSystems(family)
+  const registry = createBlueprintRegistry(process.cwd())
+  const discoveredIds = registry.listDesignSystems(family)
 
   // Merge "known" metadata with whatever is in the blueprints folder
   return discoveredIds.map((id) => ({

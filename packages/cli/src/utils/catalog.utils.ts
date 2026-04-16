@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { getKompoCatalogPath, readKompoConfig, readWorkspaceConfig } from '@kompo/kit'
+import { getFrameworkFamily } from '@kompojs/config/constants'
+import { getKompoCatalogPath, readKompoConfig } from '@kompojs/kit'
 
 export async function regenerateCatalog(rootDir: string, options: { silent?: boolean } = {}) {
   const catalogPath = getKompoCatalogPath(rootDir)
@@ -13,27 +14,45 @@ export async function regenerateCatalog(rootDir: string, options: { silent?: boo
     return
   }
 
-  // 2. Load existing versions from pnpm-workspace.yaml
-  let workspaceVersions: Record<string, string> = {}
-  try {
-    const workspaceConfig = readWorkspaceConfig(rootDir)
-    if (workspaceConfig.catalog) {
-      workspaceVersions = { ...workspaceConfig.catalog }
-    }
-  } catch (_e) {
-    // console.warn('Failed to parse pnpm-workspace.yaml')
-  }
+  // 2. Initialize empty workspace versions (no longer read from pnpm-workspace.yaml)
+  const workspaceVersions: Record<string, string> = {}
 
   // 3. Identify Catalogs to Merge
-  const { getBlueprintCatalogPath } = await import('@kompo/blueprints')
+  const { createBlueprintRegistry } = await import('@kompojs/blueprints')
+  const catRegistry = createBlueprintRegistry(rootDir)
   const catalogsToMerge: Array<{ name: string; path: string }> = []
 
-  // Process Apps
+  // Process Apps (framework + design system catalogs)
   if (config.apps) {
     for (const [_appName, appConfig] of Object.entries(config.apps)) {
       const fw = appConfig.framework
-      const p = getBlueprintCatalogPath(`apps/${fw}/framework`)
-      if (p) catalogsToMerge.push({ name: fw, path: p })
+
+      // Framework catalog
+      const fwPath = catRegistry.getBlueprintCatalogPath(`apps/${fw}/framework`)
+      if (fwPath) catalogsToMerge.push({ name: fw, path: fwPath })
+
+      // App-level design system catalog (e.g. apps/nextjs/design-systems/tailwind/catalog.json)
+      if (appConfig.designSystem) {
+        const dsAppPath = catRegistry.getBlueprintCatalogPath(
+          `apps/${fw}/design-systems/${appConfig.designSystem}`
+        )
+        if (dsAppPath) {
+          catalogsToMerge.push({ name: `app-${fw}-${appConfig.designSystem}`, path: dsAppPath })
+        }
+
+        // Lib-level design system catalog (e.g. libs/ui/react/tailwind/catalog.json)
+        try {
+          const family = getFrameworkFamily(fw)
+          const dsLibPath = catRegistry.getBlueprintCatalogPath(
+            `libs/ui/${family}/${appConfig.designSystem}`
+          )
+          if (dsLibPath) {
+            catalogsToMerge.push({ name: appConfig.designSystem, path: dsLibPath })
+          }
+        } catch {
+          // Ignore if family lookup fails
+        }
+      }
     }
   }
 
@@ -43,7 +62,7 @@ export async function regenerateCatalog(rootDir: string, options: { silent?: boo
       const { port, engine } = adapterConfig
       const lookup = `${port}/providers/${engine}`
       const adapterBlueprintPath = `libs/adapters/${lookup}`
-      const p = getBlueprintCatalogPath(adapterBlueprintPath)
+      const p = catRegistry.getBlueprintCatalogPath(adapterBlueprintPath)
       if (p) {
         catalogsToMerge.push({ name: `adapter-${port}-${engine}`, path: p })
       }
@@ -52,7 +71,6 @@ export async function regenerateCatalog(rootDir: string, options: { silent?: boo
 
   // 4. Merge Logic with Preservation
   const newCatalog = { version: '1.0.0', packages: {} as Record<string, any> }
-  // Write initial in case loop fails, but mostly we build object first
 
   for (const item of catalogsToMerge) {
     const blueprintCatalog = JSON.parse(readFileSync(item.path, 'utf-8'))

@@ -1,8 +1,0 @@
-{
-  "id": "viem",
-  "name": "Viem",
-  "version": "1.0.0",
-  "type": "adapter",
-  "family": "explorer",
-  "capability": "explorer"
-}

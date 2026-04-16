@@ -39,8 +39,9 @@ export async function mergeBlueprintScripts(
   context: Record<string, any> = {}
 ) {
   try {
-    const { getTemplatesDir } = await import('@kompo/blueprints')
-    const blueprintDir = path.join(getTemplatesDir(), blueprintPath)
+    const { createBlueprintRegistry } = await import('@kompojs/blueprints')
+    const scriptsRegistry = createBlueprintRegistry(repoRoot)
+    const blueprintDir = path.join(scriptsRegistry.getCoreTemplatesDir(), blueprintPath)
     const fs = createFsEngine()
 
     // 1. Check for snippets/root-scripts.eta

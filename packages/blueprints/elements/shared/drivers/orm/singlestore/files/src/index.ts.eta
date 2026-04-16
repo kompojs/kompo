@@ -1,7 +1,0 @@
-import { createPool } from 'mysql2/promise'
-
-export function createSingleStoreClient(connectionString: string) {
-  return createPool(connectionString)
-}
-
-export { createPool }

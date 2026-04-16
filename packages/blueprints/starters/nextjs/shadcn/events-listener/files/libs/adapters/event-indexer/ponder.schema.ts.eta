@@ -1,3 +1,0 @@
-// Ponder schema file - intentionally empty
-// Token events are stored via BullMQ -> Drizzle, not via Ponder's onchainTable
-// This avoids name collision with the Drizzle-managed token_events table

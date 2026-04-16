@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { cancel, confirm, isCancel, log, multiselect, select, text } from '@clack/prompts'
-import { readKompoConfig } from '@kompo/kit'
+import { readKompoConfig } from '@kompojs/kit'
 import type { Command } from 'commander'
 import color from 'picocolors'
 import { createFsEngine } from '../../../engine/fs-engine'

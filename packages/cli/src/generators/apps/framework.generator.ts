@@ -1,13 +1,13 @@
 import path from 'node:path'
 import { spinner } from '@clack/prompts'
-import { FRAMEWORKS, type FrameworkId, getFrameworkFamily } from '@kompo/config/constants'
+import { FRAMEWORKS, type FrameworkId, getFrameworkFamily } from '@kompojs/config/constants'
 import {
   getRequiredFeatures,
   LIBS_DIR,
   mergeBlueprintCatalog,
   updateCatalogFromFeatures,
   updateCatalogSources,
-} from '@kompo/kit'
+} from '@kompojs/kit'
 import color from 'picocolors'
 import { createFsEngine } from '../../engine/fs-engine'
 import { regenerateCatalog } from '../../utils/catalog.utils'
@@ -146,11 +146,9 @@ export async function generateFramework(ctx: FrameworkGeneratorContext) {
   if (hasBlueprint) {
     // Render the blueprint (in case values depend on template vars), then parse
     try {
-      const { loadBlueprint } = await import('../../utils/blueprints.utils')
-      const { getTemplatesDir } = await import('@kompo/blueprints')
-
-      const absoluteBlueprintPath = path.join(getTemplatesDir(), blueprintJsonPath)
-      blueprintConfig = await loadBlueprint(absoluteBlueprintPath)
+      // First render the blueprint.json with template variables
+      const renderedBlueprint = await templates.render(blueprintJsonPath, partialData)
+      blueprintConfig = JSON.parse(renderedBlueprint)
 
       if (blueprintConfig.hooks) {
         hooks = blueprintConfig.hooks
@@ -391,14 +389,13 @@ export async function generateFramework(ctx: FrameworkGeneratorContext) {
   // are picked up, even if they aren't part of the standard kit features yet.
   if (designSystem) {
     try {
-      const { getTemplatesDir } = await import('@kompo/blueprints')
-      const dsCatalogPath = path.join(
-        getTemplatesDir(),
-        `apps/${framework}/design-systems/${designSystem}`,
-        'catalog.json'
+      const { createBlueprintRegistry } = await import('@kompojs/blueprints')
+      const registryDs = createBlueprintRegistry(repoRoot)
+      const dsCatalogPath = registryDs.getBlueprintCatalogPath(
+        `apps/${framework}/design-systems/${designSystem}`
       )
 
-      if (await fs.fileExists(dsCatalogPath)) {
+      if (dsCatalogPath) {
         const dsGroup = `app-${framework}-${designSystem}`
         mergeBlueprintCatalog(repoRoot, dsGroup, dsCatalogPath)
         // Add to features list so it gets added to pnpm-workspace.yaml
@@ -412,10 +409,11 @@ export async function generateFramework(ctx: FrameworkGeneratorContext) {
   // [KOMPO] Manual Catalog Sync for Base App (Shared)
   // Ensures core dependencies (react, next, vite, etc.) from the base template are added.
   try {
-    const { getTemplatesDir } = await import('@kompo/blueprints')
-    const baseCatalogPath = path.join(getTemplatesDir(), baseAppDir, 'catalog.json')
+    const { createBlueprintRegistry } = await import('@kompojs/blueprints')
+    const registryBase = createBlueprintRegistry(repoRoot)
+    const baseCatalogPath = registryBase.getBlueprintCatalogPath(baseAppDir)
 
-    if (await fs.fileExists(baseCatalogPath)) {
+    if (baseCatalogPath) {
       const baseGroup = `app-${framework}-base`
       mergeBlueprintCatalog(repoRoot, baseGroup, baseCatalogPath)
       features.push(baseGroup)

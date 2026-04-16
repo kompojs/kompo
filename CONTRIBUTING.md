@@ -21,7 +21,7 @@ Kompo is built on the principles of **Functional Programming** and **Hexagonal A
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/kompo-dev/kompo.git
+   git clone https://github.com/kompojs/kompo.git
    cd kompo
    ```
 2. Install dependencies:
@@ -89,7 +89,7 @@ Example: `feat(auth): implement login with wallet`
 ## 💬 Community
 
 - Join our [Discord](https://discord.gg/your-link) for discussions.
-- Report bugs via [GitHub Issues](https://github.com/kompo-dev/kompo/issues).
+- Report bugs via [GitHub Issues](https://github.com/kompojs/kompo/issues).
 
 ---
 

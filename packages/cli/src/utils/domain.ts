@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { readKompoConfig } from '@kompo/kit'
+import { readKompoConfig } from '@kompojs/kit'
 import { DOMAIN_BLUEPRINT_SRC } from '../constants/blueprints'
 import { createFsEngine } from '../engine/fs-engine'
 import { getDomainPath, getTemplateEngine } from './project'

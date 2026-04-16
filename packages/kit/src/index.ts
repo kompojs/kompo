@@ -2,6 +2,8 @@
  * Kompo CLI Kit - Shared interfaces and utilities
  */
 
+// Semver utilities for version comparison
+export { clean, gt } from 'semver'
 export type { MockFsEngine, MockTemplateEngine } from './__tests__/test-utils'
 // Test utilities (for plugin testing)
 export {
@@ -12,7 +14,6 @@ export {
   parseEnvFile,
   setupTestFixtures,
 } from './__tests__/test-utils'
-
 export {
   type ApplyConfig,
   extractPluginsFromSteps,
@@ -20,22 +21,20 @@ export {
   type ProjectStructure,
 } from './apply-config'
 export type { CatalogEntry, KompoCatalog, PackageGroup, WorkspaceConfig } from './catalog'
-
 // Catalog utilities
 export {
   ensureKompoCatalog,
+  getAllCatalogVersions,
   getCatalogEntriesForFeatures,
   getKompoCatalogPath,
-  getPluginDir,
   getRequiredFeatures,
   mergeBlueprintCatalog,
   mergeCatalogs,
   readKompoCatalog,
   readPluginCatalog,
-  readWorkspaceConfig,
+  resolveCatalogReferences,
+  resolveWorkspaceReferences,
   updateCatalogFromFeatures,
-  updateWorkspaceCatalog,
-  writeWorkspaceConfig,
 } from './catalog'
 export type { FsEngine, KompoContext, TemplateEngine } from './context'
 // Helper functions
@@ -73,6 +72,9 @@ export {
   upsertApp,
   writeKompoConfig,
 } from './kompo-config'
+// Package manager detection
+export type { PackageManager, PackageManagerName } from './package-manager'
+export { detectPackageManager } from './package-manager'
 export type { Pipeline, PipelineBuilder } from './pipeline'
 // Core interfaces
 export type { KompoPlugin, PluginRegistry } from './plugin'
@@ -87,3 +89,7 @@ export {
   providerSatisfiesPort,
 } from './port-dependencies'
 export type { Question, Step, TemplateDefinition } from './step'
+
+// Workspace detection
+export type { WorkspaceInfo, WorkspaceType } from './workspace'
+export { findWorkspaceRoot } from './workspace'

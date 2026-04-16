@@ -1,6 +1,6 @@
 // ... imports ...
-import type { KompoPlugin, PluginRegistry, Question, Step, TemplateDefinition } from '@kompo/kit'
-import { readKompoConfig } from '@kompo/kit'
+import type { KompoPlugin, PluginRegistry, Question, Step, TemplateDefinition } from '@kompojs/kit'
+import { readKompoConfig } from '@kompojs/kit'
 
 export interface KompoPluginRegistry extends PluginRegistry {
   registerPlugin(plugin: KompoPlugin): void

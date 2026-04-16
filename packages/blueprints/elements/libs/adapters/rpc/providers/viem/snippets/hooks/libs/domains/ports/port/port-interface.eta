@@ -1,3 +1,0 @@
-  getPublicClient(): any
-  getBlockNumber(): Promise<bigint>
-  getBalance(address: string): Promise<bigint>

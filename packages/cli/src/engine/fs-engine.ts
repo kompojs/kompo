@@ -6,7 +6,7 @@ import { exec } from 'node:child_process'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
-import type { FsEngine } from '@kompo/kit'
+import { detectPackageManager, type FsEngine } from '@kompojs/kit'
 
 const execAsync = promisify(exec)
 
@@ -24,7 +24,9 @@ export function createFsEngine(): FsEngine {
 
     try {
       // Automatically format the generated file
-      await execAsync(`pnpm biome check --write "${filePath}"`)
+      const pm = detectPackageManager(path.dirname(filePath))
+      const cmd = pm.execCommand('biome', ['check', '--write', `"${filePath}"`])
+      await execAsync(cmd.join(' '))
     } catch {
       // Ignore formatting errors (e.g. biome not found or syntax error in template)
     }

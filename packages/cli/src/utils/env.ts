@@ -1,5 +1,5 @@
 import path from 'node:path'
-import type { FrameworkId } from '@kompo/config/constants'
+import type { FrameworkId } from '@kompojs/config/constants'
 import type { ObjectLiteralExpression } from 'ts-morph'
 import { Project, SyntaxKind } from 'ts-morph'
 import { createFsEngine } from '../engine/fs-engine'

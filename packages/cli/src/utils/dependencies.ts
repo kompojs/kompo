@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { getAllCatalogVersions } from '@kompojs/kit'
 import { createFsEngine } from '../engine/fs-engine'
 
 interface InjectDependencyOptions {
@@ -52,12 +53,16 @@ interface InjectDependenciesOptions {
 /**
  * Helper to inject runtime dependencies into one or many apps/libs.
  * If targets is not provided, it injects into all apps found in the workspace.
+ * Resolves actual versions from kompo.catalog.json (PM-agnostic).
  */
 export async function injectDependencies(options: InjectDependenciesOptions) {
-  const { repoRoot, targets, dependencies, version = 'catalog:' } = options
+  const { repoRoot, targets, dependencies, version } = options
   const { getApps } = await import('./project')
 
   if (!dependencies || dependencies.length === 0) return
+
+  // Build a version lookup from kompo.catalog.json
+  const catalogVersions = getAllCatalogVersions(repoRoot)
 
   // Normalize targets to an array
   let normalizedTargets: string[] = []
@@ -71,12 +76,14 @@ export async function injectDependencies(options: InjectDependenciesOptions) {
 
   for (const target of normalizedTargets) {
     for (const dependency of dependencies) {
+      // Resolve version: explicit > catalog lookup > fallback to '*'
+      const resolvedVersion = version || catalogVersions[dependency] || '*'
       try {
         await injectDependency({
           repoRoot,
           targetApp: target,
           dependency,
-          version,
+          version: resolvedVersion,
         })
       } catch (_e) {
         // Silently skip if target or package.json not found

@@ -11,7 +11,7 @@ import {
 // Import generators to ensure they are registered
 import '../../../generators'
 import { cancel, intro, isCancel, log, note, outro, select } from '@clack/prompts'
-import { PORT_DEFINITIONS, readKompoConfig } from '@kompo/kit'
+import { PORT_DEFINITIONS, readKompoConfig } from '@kompojs/kit'
 import type { DriverManifest, ProviderManifest } from '../../../registries/capability.registry'
 import { getSimilarAdaptersForPort, registerAdapter } from '../../../utils/config'
 import {
@@ -600,15 +600,16 @@ export async function runAddAdapter(
   // Find and merge catalogs
   let adapterBlueprintDir: string | undefined
   try {
-    const { getBlueprintCatalogPath } = await import('@kompo/blueprints')
-    const { mergeBlueprintCatalog, updateCatalogFromFeatures } = await import('@kompo/kit')
+    const { createBlueprintRegistry } = await import('@kompojs/blueprints')
+    const { mergeBlueprintCatalog, updateCatalogFromFeatures } = await import('@kompojs/kit')
+    const registryAd = createBlueprintRegistry(repoRoot)
     const { mergeBlueprintScripts } = await import('../../../utils/scripts')
 
     const providerDir = selectedProvider.id
     const adapterLookup = `${capability.id}/providers/${providerDir}`
     const adapterBlueprintPath = `libs/adapters/${adapterLookup}`
-    const adapterCatalogPath = getBlueprintCatalogPath(adapterBlueprintPath)
-    const { repoRoot, config } = await ensureProjectContext(cwd)
+    const adapterCatalogPath = registryAd.getBlueprintCatalogPath(adapterBlueprintPath)
+    const { config } = await ensureProjectContext(cwd)
 
     if (adapterCatalogPath) {
       const catalogGroups: string[] = []
@@ -655,7 +656,7 @@ export async function runAddAdapter(
 
         const driverLookup = `${capability.id}/${selectedProvider.id}/${driverId}`
         const driverBlueprintPath = `libs/drivers/${driverLookup}`
-        const driverCatalogPath = getBlueprintCatalogPath(driverBlueprintPath)
+        const driverCatalogPath = registryAd.getBlueprintCatalogPath(driverBlueprintPath)
 
         if (driverCatalogPath) {
           const driverGroup = `driver-${selectedDriverId}`
@@ -670,8 +671,7 @@ export async function runAddAdapter(
       }
     }
 
-    const { getTemplatesDir } = await import('@kompo/blueprints')
-    adapterBlueprintDir = path.join(getTemplatesDir(), adapterBlueprintPath)
+    adapterBlueprintDir = path.join(registryAd.getCoreTemplatesDir(), adapterBlueprintPath)
   } catch {
     // Ignore catalog errors
   }

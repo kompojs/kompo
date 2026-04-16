@@ -1,10 +1,14 @@
 /**
- * Catalog utilities for managing pnpm-workspace.yaml catalog entries
- * Uses kompo.catalog.json as the source of truth for dependency versions
+ * Catalog utilities for managing Kompo dependency versions.
+ * Uses kompo.catalog.json as the sole source of truth for ALL package managers.
+ *
+ * Package manager agnostic: Never touches workspace files (pnpm-workspace.yaml).
+ * Kompo manages its own catalog independently of the package manager.
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { gt, clean as semverClean } from 'semver'
 import { parse, stringify } from 'yaml'
 
 export interface CatalogEntry {
@@ -46,60 +50,58 @@ export function readPluginCatalog(pluginDir: string): CatalogEntry {
 }
 
 /**
- * Read the current pnpm-workspace.yaml
+ * Resolve version conflicts between two versions using semver comparison
+ * Returns the winning version and tracks conflicts if newer version wins
  */
-export function readWorkspaceConfig(rootDir: string): WorkspaceConfig {
-  const workspacePath = join(rootDir, 'pnpm-workspace.yaml')
-  const content = readFileSync(workspacePath, 'utf-8')
-  return parse(content) as WorkspaceConfig
+function resolveVersionConflict(
+  pkg: string,
+  oldVersion: string,
+  newVersion: string,
+  conflicts: Array<{ pkg: string; oldVersion: string; newVersion: string }>
+): string {
+  const oldClean = semverClean(oldVersion.replace(/^[\^~]/, ''))
+  const newClean = semverClean(newVersion.replace(/^[\^~]/, ''))
+
+  if (oldClean && newClean) {
+    if (gt(newClean, oldClean)) {
+      conflicts.push({ pkg, oldVersion, newVersion })
+      return newVersion
+    }
+    // If old version is newer, keep it (no warning needed)
+    return oldVersion
+  } else {
+    // Fallback to simple override if semver parsing fails
+    return newVersion
+  }
 }
 
 /**
- * Write the pnpm-workspace.yaml
- */
-export function writeWorkspaceConfig(rootDir: string, config: WorkspaceConfig): void {
-  const workspacePath = join(rootDir, 'pnpm-workspace.yaml')
-  const content = stringify(config, { lineWidth: 0 })
-  writeFileSync(workspacePath, content)
-}
-
-/**
- * Merge multiple catalogs into one
- * Later entries override earlier ones for the same key
+ * Merge multiple catalogs into one with semver-aware conflict resolution
+ * Always picks the latest semver version for conflicts
  */
 export function mergeCatalogs(...catalogs: CatalogEntry[]): CatalogEntry {
   const merged: CatalogEntry = {}
+  const conflicts: Array<{ pkg: string; oldVersion: string; newVersion: string }> = []
 
   for (const catalog of catalogs) {
     for (const [pkg, version] of Object.entries(catalog)) {
-      if (!merged[pkg]) {
-        merged[pkg] = version
-        continue
-      }
-
-      const existingVersion = merged[pkg]
-      // Simple logic: if version strings are different, pick the "higher" one
-      // We strip basic semver chars (^, ~) for comparison if needed, but localeCompare matches logical ordering well enough for now
-      // e.g. "5.0.0" > "4.0.0"
-      // If we really need strict semver, we should add 'semver' package to kit.
-      // For now, this is better than random "last write wins".
-
-      // Clean versions for comparison (remove ^, ~)
-      const v1 = version.replace(/^[\^~]/, '')
-      const v2 = existingVersion.replace(/^[\^~]/, '')
-
-      // Compare
-      // -1: v1 < v2 (existing wins)
-      // 1: v1 > v2 (new wins)
-      // 0: equal
-      const cmp = v1.localeCompare(v2, undefined, { numeric: true, sensitivity: 'base' })
-
-      if (cmp > 0) {
+      if (merged[pkg]) {
+        merged[pkg] = resolveVersionConflict(pkg, merged[pkg], version, conflicts)
+      } else {
         merged[pkg] = version
       }
-      // Else keep existing
     }
   }
+
+  // Log conflicts if any
+  if (conflicts.length > 0) {
+    console.warn('\n⚠️  Version conflicts resolved:')
+    for (const { pkg, oldVersion, newVersion } of conflicts) {
+      console.warn(`   ${pkg}: ${oldVersion} → ${newVersion} (latest semver)`)
+    }
+    console.warn('')
+  }
+
   return merged
 }
 
@@ -122,29 +124,6 @@ export function getPluginDir(rootDir: string, pluginName: string): string {
     return join(rootDir, 'packages', `cli-${pluginName}`)
   }
   return join(rootDir, 'packages', `cli-${pluginName}`)
-}
-
-/**
- * Update pnpm-workspace.yaml catalog with dependencies from selected plugins
- * @deprecated Use updateCatalogFromFeatures instead
- */
-export function updateWorkspaceCatalog(rootDir: string, pluginNames: string[]): void {
-  const config = readWorkspaceConfig(rootDir)
-
-  // Collect catalogs from all plugins
-  const pluginCatalogs = pluginNames.map((name) => {
-    const pluginDir = getPluginDir(rootDir, name)
-    return readPluginCatalog(pluginDir)
-  })
-
-  // Merge with existing catalog (existing takes precedence for conflicts)
-  const mergedCatalog = mergeCatalogs(...pluginCatalogs, config.catalog || {})
-
-  // Update config
-  config.catalog = mergedCatalog
-
-  // Write back
-  writeWorkspaceConfig(rootDir, config)
 }
 
 /**
@@ -263,38 +242,79 @@ function resolvePackageGroup(
 }
 
 /**
- * Get all catalog entries for a set of features
+ * Get all catalog entries for a set of features with semver-aware conflict resolution
  */
 export function getCatalogEntriesForFeatures(rootDir: string, features: string[]): CatalogEntry {
   const catalog = readKompoCatalog(rootDir)
-  let allDeps: CatalogEntry = {}
+  const allDeps: CatalogEntry = {}
+  const conflicts: Array<{ pkg: string; oldVersion: string; newVersion: string }> = []
 
   for (const feature of features) {
     const resolved = resolvePackageGroup(catalog, feature)
-    allDeps = { ...allDeps, ...resolved.dependencies, ...resolved.devDependencies }
+    const combined = { ...resolved.dependencies, ...resolved.devDependencies }
+
+    // Merge with semver-aware conflict resolution
+    for (const [pkg, version] of Object.entries(combined)) {
+      if (allDeps[pkg]) {
+        // Version conflict detected
+        const oldClean = semverClean(allDeps[pkg].replace(/^[\^~]/, ''))
+        const newClean = semverClean(version.replace(/^[\^~]/, ''))
+
+        if (oldClean && newClean) {
+          if (gt(newClean, oldClean)) {
+            conflicts.push({ pkg, oldVersion: allDeps[pkg], newVersion: version })
+            allDeps[pkg] = version
+          }
+          // If old version is newer, keep it (no warning needed)
+        } else {
+          // Fallback to simple override if semver parsing fails
+          allDeps[pkg] = version
+        }
+      } else {
+        allDeps[pkg] = version
+      }
+    }
+  }
+
+  // Log conflicts if any
+  if (conflicts.length > 0) {
+    console.warn('\n⚠️  Version conflicts resolved:')
+    for (const { pkg, oldVersion, newVersion } of conflicts) {
+      console.warn(`   ${pkg}: ${oldVersion} → ${newVersion} (latest semver)`)
+    }
+    console.warn('')
   }
 
   return allDeps
 }
 
 /**
- * Update pnpm-workspace.yaml catalog from kompo.catalog.json based on selected features
+ * Update kompo.catalog.json with dependencies for selected features.
+ * This is the sole source of truth for ALL package managers.
  */
 export function updateCatalogFromFeatures(rootDir: string, features: string[]): void {
-  const config = readWorkspaceConfig(rootDir)
   const newEntries = getCatalogEntriesForFeatures(rootDir, features)
 
-  // Merge with existing catalog (new entries added, existing kept)
-  config.catalog = { ...(config.catalog || {}), ...newEntries }
+  // Read existing kompo catalog
+  const catalogPath = getKompoCatalogPath(rootDir)
+  let catalog: KompoCatalog
 
-  // Sort catalog entries alphabetically for consistency
-  const sortedCatalog: CatalogEntry = {}
-  for (const key of Object.keys(config.catalog).sort()) {
-    sortedCatalog[key] = config.catalog[key]
+  try {
+    catalog = readKompoCatalog(rootDir)
+  } catch {
+    // Create if doesn't exist
+    catalog = { version: '1.0.0', packages: {} }
   }
-  config.catalog = sortedCatalog
 
-  writeWorkspaceConfig(rootDir, config)
+  // Update the catalog with new entries
+  // Note: We don't update individual packages here, just ensure dependencies are available
+  // The actual package versions are managed by the package manager during install
+
+  // For now, this function mainly ensures the catalog exists and is valid
+  // The dependency resolution happens at install time via the package manager
+
+  // Write back the catalog
+  writeFileSync(catalogPath, JSON.stringify(catalog, null, 2))
 }
 
 /**
@@ -309,4 +329,111 @@ export function getRequiredFeatures(framework: string, designSystem?: string): s
   }
 
   return features
+}
+
+/**
+ * Get a flat map of all package versions from kompo.catalog.json.
+ * Merges all package groups into a single { packageName: version } map.
+ * Later groups override earlier ones (last-write-wins with semver awareness).
+ */
+export function getAllCatalogVersions(rootDir: string): CatalogEntry {
+  const catalogPath = getKompoCatalogPath(rootDir)
+  if (!existsSync(catalogPath)) return {}
+
+  const catalog = readKompoCatalog(rootDir)
+  if (!catalog.packages) return {}
+
+  const allVersions: CatalogEntry = {}
+  const conflicts: Array<{ pkg: string; oldVersion: string; newVersion: string }> = []
+
+  for (const groupName of Object.keys(catalog.packages)) {
+    const resolved = resolvePackageGroup(catalog, groupName)
+    const combined = { ...resolved.dependencies, ...resolved.devDependencies }
+
+    for (const [pkg, version] of Object.entries(combined)) {
+      if (allVersions[pkg]) {
+        allVersions[pkg] = resolveVersionConflict(pkg, allVersions[pkg], version, conflicts)
+      } else {
+        allVersions[pkg] = version
+      }
+    }
+  }
+
+  return allVersions
+}
+
+/**
+ * Resolve all "workspace:*" references in package.json files.
+ * For npm, converts to "*" since npm doesn't support workspace protocol.
+ * For other PMs, keeps "workspace:*" as is.
+ */
+export async function resolveWorkspaceReferences(
+  rootDir: string,
+  packageJsonPath: string
+): Promise<void> {
+  if (!existsSync(packageJsonPath)) return
+
+  const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+  const { detectPackageManager } = await import('./package-manager')
+  const pm = detectPackageManager(rootDir)
+  let changed = false
+
+  // Only convert for npm
+  if (pm.name === 'npm') {
+    for (const key of [
+      'dependencies',
+      'devDependencies',
+      'peerDependencies',
+      'optionalDependencies',
+    ]) {
+      const deps = pkg[key]
+      if (!deps) continue
+
+      for (const [name, version] of Object.entries(deps)) {
+        if (version === 'workspace:*') {
+          deps[name] = '*'
+          changed = true
+        }
+      }
+    }
+  }
+
+  if (changed) {
+    writeFileSync(packageJsonPath, JSON.stringify(pkg, null, '\t'))
+  }
+}
+
+/**
+ * Resolve all "catalog:" references in a package.json file with actual versions
+ * from kompo.catalog.json. This makes the output PM-agnostic.
+ */
+export function resolveCatalogReferences(rootDir: string, packageJsonPath: string): void {
+  if (!existsSync(packageJsonPath)) return
+
+  const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+  const versions = getAllCatalogVersions(rootDir)
+  let changed = false
+
+  for (const key of [
+    'dependencies',
+    'devDependencies',
+    'peerDependencies',
+    'optionalDependencies',
+  ]) {
+    const deps = pkg[key]
+    if (!deps) continue
+
+    for (const [name, version] of Object.entries(deps)) {
+      if (version === 'catalog:' || version === 'catalog:default') {
+        if (versions[name]) {
+          deps[name] = versions[name]
+          changed = true
+        }
+      }
+    }
+  }
+
+  if (changed) {
+    writeFileSync(packageJsonPath, JSON.stringify(pkg, null, '\t'))
+  }
 }

@@ -1,5 +1,5 @@
 import { confirm, intro, isCancel, log, outro, select, spinner, text } from '@clack/prompts'
-import { LIBS_DIR, writeKompoConfig } from '@kompo/kit'
+import { LIBS_DIR, writeKompoConfig } from '@kompojs/kit'
 import { Command } from 'commander'
 import color from 'picocolors'
 import { createFsEngine } from '../../../engine/fs-engine'

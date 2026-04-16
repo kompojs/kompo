@@ -1,5 +1,5 @@
-import type { AdapterBlueprint } from '@kompo/blueprints'
-import type { FsEngine, TemplateEngine } from '@kompo/kit'
+import type { AdapterBlueprint } from '@kompojs/blueprints'
+import type { FsEngine, TemplateEngine } from '@kompojs/kit'
 import type {
   CapabilityManifest,
   DriverManifest,

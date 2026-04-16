@@ -1,9 +1,0 @@
-{
-  "extends": "<%= it.tsconfigPath %>",
-  "compilerOptions": {
-    "rootDir": "src",
-    "lib": ["ES2022", "DOM"],
-    "incremental": true
-  },
-  "include": ["src/**/*"]
-}

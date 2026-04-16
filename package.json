@@ -2,13 +2,13 @@
   "name": "kompo",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://github.com/kompo-dev/kompo#readme",
+  "homepage": "https://github.com/kompojs/kompo#readme",
   "bugs": {
-    "url": "https://github.com/kompo-dev/kompo/issues"
+    "url": "https://github.com/kompojs/kompo/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kompo-dev/kompo.git"
+    "url": "git+https://github.com/kompojs/kompo.git"
   },
   "type": "module",
   "scripts": {
@@ -17,28 +17,30 @@
     "clean": "rimraf apps/**/.next apps/**/dist apps/**/build apps/**/.turbo apps/**/node_modules libs/**/dist libs/**/.turbo libs/adapters/**/node_modules libs/**/node_modules .turbo node_modules pnpm-lock.yaml",
     "clean:all": "turbo clean && pnpm run clean && pnpm store prune",
     "dev": "turbo run dev --parallel",
+    "dev:setup": "node scripts/dev-setup.js dev",
+    "prod:setup": "node scripts/dev-setup.js prod",
+    "dev:status": "node scripts/dev-setup.js status",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "preinstall": "node -e \"const ua=process.env.npm_config_user_agent||''; if(!ua.startsWith('pnpm/')){console.error('This repo requires pnpm. Install it from https://pnpm.io and rerun: pnpm install'); process.exit(1)}\"",
     "postinstall": "turbo run build",
     "kompo": "tsx packages/cli/src/bin/kompo.ts",
-    "kompo:docs:dev": "turbo run docs:dev --filter=@kompo/docs",
-    "kompo:docs:build": "turbo run docs:build --filter=@kompo/docs",
-    "kompo:docs:preview": "turbo run docs:preview --filter=@kompo/docs",
+    "kompo:docs:dev": "turbo run docs:dev --filter=@kompojs/docs",
+    "kompo:docs:build": "turbo run docs:build --filter=@kompojs/docs",
+    "kompo:docs:preview": "turbo run docs:preview --filter=@kompojs/docs",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "prepare": "husky",
     "sort": "sort-package-json \"package.json\" \"apps/*/package.json\" \"libs/**/package.json\"",
     "test": "turbo run test",
     "test:e2e": "./scripts/test-e2e.sh",
-    "type-check": "turbo run type-check"
+    "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.5",
     "@changesets/cli": "^2.29.8",
     "@commitlint/cli": "^20.3.1",
     "@commitlint/config-conventional": "^20.3.1",
-    "@kompo/tsconfig": "workspace:*",
+    "@kompojs/tsconfig": "workspace:*",
     "@turbo/gen": "latest",
     "@vitest/coverage-v8": "^3.2.4",
     "husky": "^9.1.7",
@@ -46,6 +48,7 @@
     "memfs": "^4.17.1",
     "rimraf": "^6.1.2",
     "sort-package-json": "^3.6.0",
+    "tsup": "^8.5.1",
     "tsx": "latest",
     "turbo": "latest",
     "typescript": "^5.9.3",

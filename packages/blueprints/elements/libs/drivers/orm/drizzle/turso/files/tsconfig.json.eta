@@ -1,4 +1,0 @@
-{
-  "extends": "<%= it.tsconfigPath %>",
-  "include": ["src"]
-}

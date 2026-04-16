@@ -1,5 +1,5 @@
 import { intro, log, outro } from '@clack/prompts'
-import { readKompoConfig } from '@kompo/kit'
+import { readKompoConfig } from '@kompojs/kit'
 import { Command } from 'commander'
 import color from 'picocolors'
 import { getCapabilities } from '../registries/capability.registry'
@@ -303,21 +303,26 @@ export function createListCommand(_registry: KompoPluginRegistry): Command {
     .alias('s')
     .description('List available starter templates')
     .action(async () => {
-      const { listStarters, getTemplatesDir } = await import('@kompo/blueprints')
+      const { createBlueprintRegistry } = await import('@kompojs/blueprints')
       const path = await import('node:path')
 
       intro(color.bgMagenta('🚀 Available Starters'))
 
-      // 1. Get all starters using unified loader
-      const starters = listStarters()
+      const registry = createBlueprintRegistry(process.cwd())
 
-      if (starters.length === 0) {
+      // 1. Get all starters using unified loader
+      const resolvedStarters = registry.listStarters()
+
+      if (resolvedStarters.length === 0) {
         outro(color.dim('No starters found.'))
         return
       }
 
+      // Unwrap for backward compat
+      const starters = resolvedStarters.map((r) => r.starter)
+
       // 2. Enrich for display (Framework / Design System derivation)
-      const templatesDir = getTemplatesDir()
+      const templatesDir = registry.getCoreTemplatesDir()
       const startersRoot = path.join(templatesDir, '../starters')
 
       // Helper to infer hierarchy from path
@@ -395,6 +400,79 @@ export function createListCommand(_registry: KompoPluginRegistry): Command {
       outro(
         `${starters.length} starters found. Use: ${color.blue('kompo add app --template <id>')}`
       )
+    })
+
+  cmd
+    .command('blueprints')
+    .alias('bp')
+    .description('List installed blueprint packages')
+    .action(async () => {
+      const { createBlueprintRegistry } = await import('@kompojs/blueprints')
+
+      intro(color.bgCyan('📦 Blueprint Packages'))
+
+      const registry = createBlueprintRegistry(process.cwd())
+      const packages = registry.packages
+
+      if (packages.length === 0) {
+        outro(color.dim('No blueprint packages found.'))
+        return
+      }
+
+      for (const pkg of packages) {
+        const m = pkg.manifest
+        const sourceLabel =
+          pkg.source === 'core'
+            ? color.blue('core')
+            : pkg.source === 'local'
+              ? color.green('local')
+              : color.cyan('installed')
+
+        log.message(`\n  ${color.bold(m.name)} ${color.dim(`(${sourceLabel})`)}`, { spacing: 0 })
+        log.message(`    Type: ${color.yellow(m.type)}`, { spacing: 0 })
+
+        if (m.type === 'framework' && 'frameworks' in m) {
+          const fm = m as {
+            frameworks?: string[]
+            family?: string
+            designSystems?: string[]
+            starters?: string[]
+          }
+          if (fm.frameworks?.length) {
+            log.message(`    Frameworks: ${color.cyan(fm.frameworks.join(', '))}`, { spacing: 0 })
+          }
+          if (fm.family) {
+            log.message(`    Family: ${color.dim(fm.family)}`, { spacing: 0 })
+          }
+          if (fm.designSystems?.length) {
+            log.message(
+              `    Design Systems: ${fm.designSystems.map((ds) => color.magenta(ds)).join(', ')}`,
+              { spacing: 0 }
+            )
+          }
+          if (fm.starters?.length) {
+            log.message(`    Starters: ${color.dim(String(fm.starters.length))}`, { spacing: 0 })
+          }
+        }
+
+        if (m.type === 'core') {
+          const cm = m as { adapters?: string[]; drivers?: string[]; features?: string[] }
+          if (cm.adapters?.length) {
+            log.message(`    Adapters: ${color.dim(String(cm.adapters.length))}`, { spacing: 0 })
+          }
+          if (cm.drivers?.length) {
+            log.message(`    Drivers: ${color.dim(String(cm.drivers.length))}`, { spacing: 0 })
+          }
+          if (cm.features?.length) {
+            log.message(`    Features: ${color.dim(String(cm.features.length))}`, { spacing: 0 })
+          }
+        }
+
+        log.message(`    Path: ${color.dim(pkg.packageRoot)}`, { spacing: 0 })
+      }
+
+      log.message('')
+      outro(color.dim(`${packages.length} package${packages.length === 1 ? '' : 's'} found.`))
     })
 
   return cmd

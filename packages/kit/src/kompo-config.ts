@@ -4,7 +4,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { DesignSystemId, FrameworkId } from '@kompo/config/constants'
+import type { DesignSystemId, FrameworkId } from '@kompojs/config/constants'
 
 export interface AppConfig {
   packageName: string

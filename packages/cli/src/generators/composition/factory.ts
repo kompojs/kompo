@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { log, spinner } from '@clack/prompts'
-import { CLIENT_FRAMEWORKS, type ClientFrameworkId } from '@kompo/config/constants'
-import { LIBS_DIR } from '@kompo/kit'
+import { CLIENT_FRAMEWORKS, type ClientFrameworkId } from '@kompojs/config/constants'
+import { LIBS_DIR } from '@kompojs/kit'
 import color from 'picocolors'
 import { createFsEngine } from '../../engine/fs-engine'
 import type { CapabilityManifest } from '../../registries/capability.registry'
@@ -126,7 +126,7 @@ const createGeneratorUtils = async (context: GeneratorContext): Promise<Generato
         }
 
         // Resolve app directories per framework from kompo config
-        const { readKompoConfig } = await import('@kompo/kit')
+        const { readKompoConfig } = await import('@kompojs/kit')
         const kompoConfig = readKompoConfig(context.repoRoot)
         const appsByFramework: Record<string, string[]> = {}
         if (kompoConfig?.apps) {
@@ -170,10 +170,11 @@ const createGeneratorUtils = async (context: GeneratorContext): Promise<Generato
       let blueprintMeta: BlueprintManifest = {} as BlueprintManifest
       let sourcePath: string | undefined
 
-      const { getTemplatesDir } = await import('@kompo/blueprints')
+      const { createBlueprintRegistry } = await import('@kompojs/blueprints')
+      const factoryRegistry = createBlueprintRegistry(ctx.repoRoot)
 
       if (await templates.exists(blueprintManifestTpl)) {
-        sourcePath = path.join(getTemplatesDir(), blueprintManifestTpl)
+        sourcePath = path.join(factoryRegistry.getCoreTemplatesDir(), blueprintManifestTpl)
       } else if (
         await fs.fileExists(
           path.join(ctx.repoRoot, 'packages/blueprints/elements', blueprintManifestStatic)
@@ -366,7 +367,7 @@ export const createAdapterGenerator = (config: AdapterGeneratorConfig) => {
   // Returns a function compatible with the old signature but returning GeneratorResult (or ignored void)
   return async (inputContext: BaseAdapterGeneratorContext): Promise<void> => {
     // 1. Bootstrap Context
-    const { readKompoConfig } = await import('@kompo/kit')
+    const { readKompoConfig } = await import('@kompojs/kit')
     const kompoConfig = readKompoConfig(inputContext.repoRoot)
     const scope = kompoConfig?.project?.org
 

@@ -1,2 +1,0 @@
-export * from './adapter'
-export { BalanceDisplay as ShadcnBalanceDisplay } from './ui/shadcn/balance-display'

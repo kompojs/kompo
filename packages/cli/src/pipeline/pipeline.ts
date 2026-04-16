@@ -3,7 +3,7 @@
  */
 
 import { cancel, isCancel, multiselect, select, text } from '@clack/prompts'
-import type { KompoContext, Pipeline, Question, Step } from '@kompo/kit'
+import type { KompoContext, Pipeline, Question, Step } from '@kompojs/kit'
 
 export function createPipeline(): Pipeline {
   const steps: Step[] = []

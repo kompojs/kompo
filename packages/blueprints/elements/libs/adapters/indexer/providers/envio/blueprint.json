@@ -1,7 +1,0 @@
-{
-  "id": "envio",
-  "name": "Envio",
-  "version": "1.0.0",
-  "type": "adapter",
-  "family": "indexer"
-}

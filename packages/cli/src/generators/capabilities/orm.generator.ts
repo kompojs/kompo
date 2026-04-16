@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { LIBS_DIR } from '@kompo/kit'
+import { LIBS_DIR } from '@kompojs/kit'
 import { registerAdapterGenerator } from '../../registries/adapter.registry'
 import type { CapabilityManifest } from '../../registries/capability.registry'
 import { loadProvidersFromBlueprints } from '../../utils/blueprints.utils'

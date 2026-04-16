@@ -1,7 +1,0 @@
-{
-  "name": "neon",
-  "provides": {
-    "driver": "neon"
-  },
-  "id": "neon"
-}

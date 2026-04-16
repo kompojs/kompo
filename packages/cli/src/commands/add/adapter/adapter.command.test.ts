@@ -46,7 +46,7 @@ vi.mock('../../../registries/adapter.registry', () => ({
   registerAdapterGenerator: vi.fn(),
 }))
 
-vi.mock('@kompo/kit', () => ({
+vi.mock('@kompojs/kit', () => ({
   readKompoConfig: vi.fn(),
   writeKompoConfig: vi.fn(),
   LIBS_DIR: 'libs',

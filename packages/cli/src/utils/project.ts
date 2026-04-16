@@ -3,7 +3,13 @@
  */
 import path from 'node:path'
 import { log } from '@clack/prompts'
-import { type KompoConfig, LIBS_DIR, readKompoConfig, type TemplateEngine } from '@kompo/kit'
+import {
+  findWorkspaceRoot as findWorkspace,
+  type KompoConfig,
+  LIBS_DIR,
+  readKompoConfig,
+  type TemplateEngine,
+} from '@kompojs/kit'
 import color from 'picocolors'
 import { createFsEngine } from '../engine/fs-engine'
 import { createTemplateEngine } from '../engine/template-engine'
@@ -23,7 +29,7 @@ export async function ensureProjectContext(
   if (!config) {
     log.error(color.red('❌ Project not initialized.'))
     log.message('This command must be run inside an existing Kompo project.')
-    log.message(`\nTo create a new project, run:\n  ${color.cyan('pnpm kompo add app')}\n`)
+    log.message(`\nTo create a new project, run:\n  ${color.cyan('kompo add app')}\n`)
     process.exit(1)
   }
 
@@ -31,18 +37,8 @@ export async function ensureProjectContext(
 }
 
 export async function findRepoRoot(cwd: string): Promise<string | null> {
-  const fs = createFsEngine()
-  let current = cwd
-
-  while (current !== path.dirname(current)) {
-    const workspacePath = path.join(current, 'pnpm-workspace.yaml')
-    if (await fs.fileExists(workspacePath)) {
-      return current
-    }
-    current = path.dirname(current)
-  }
-
-  return null
+  const workspace = findWorkspace(cwd)
+  return workspace?.root ?? null
 }
 
 export async function getDomainPath(repoRoot: string, domainName: string): Promise<string> {
@@ -216,15 +212,15 @@ export async function findCliRoot(): Promise<string> {
   let current = currentDir
   while (current !== path.dirname(current)) {
     if (await fs.fileExists(path.join(current, 'package.json'))) {
-      // Check if name is @kompo/cli
+      // Check if name is @kompojs/cli
       const content = await fs.readJson<{ name: string }>(path.join(current, 'package.json'))
-      if (content.name === '@kompo/cli') {
+      if (content.name === '@kompojs/cli') {
         return current
       }
     }
     current = path.dirname(current)
   }
-  throw new Error('Could not find @kompo/cli root')
+  throw new Error('Could not find @kompojs/cli root')
 }
 
 export async function getTemplateEngine(
@@ -232,11 +228,25 @@ export async function getTemplateEngine(
   repoRoot?: string
 ): Promise<TemplateEngine> {
   const fs = createFsEngine()
-  // Use templates from centrally managed blueprints package
-  const { getTemplatesDir } = await import('@kompo/blueprints')
-  const templatesDir = getTemplatesDir()
+  const { createBlueprintRegistry } = await import('@kompojs/blueprints')
 
-  const roots = [templatesDir]
+  // Build template roots from registry (installed packages + core)
+  const projectRoot = repoRoot || process.cwd()
+  const registry = createBlueprintRegistry(projectRoot)
+
+  // Core elements dir is always included as the primary root
+  const roots: string[] = [registry.getCoreTemplatesDir()]
+
+  // Add installed package element dirs (framework packages provide apps/ui templates)
+  for (const pkg of registry.packages) {
+    if (pkg.source === 'installed') {
+      const elemDir = path.join(pkg.packageRoot, pkg.manifest.paths?.elements ?? 'elements/')
+      if (!roots.includes(elemDir)) {
+        roots.push(elemDir)
+      }
+    }
+  }
+
   if (repoRoot) {
     roots.push(repoRoot)
   }
@@ -260,6 +270,6 @@ export const onCancel = () => {
  * Resolves dependencies from a template's catalog.json
  */
 export async function getDependenciesFromTemplate(templatePath: string): Promise<string[]> {
-  const { getBlueprintDependencies } = await import('@kompo/blueprints')
+  const { getBlueprintDependencies } = await import('@kompojs/blueprints')
   return getBlueprintDependencies(templatePath)
 }

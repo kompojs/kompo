@@ -23,10 +23,14 @@ vi.mock('../../../utils/format', () => ({
   runFormat: vi.fn(),
 }))
 
-vi.mock('@kompo/kit', () => ({
-  readKompoConfig: vi.fn(),
-  LIBS_DIR: 'libs',
-}))
+vi.mock('@kompojs/kit', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@kompojs/kit')>()
+  return {
+    ...actual,
+    readKompoConfig: vi.fn(),
+    LIBS_DIR: 'libs',
+  }
+})
 
 vi.mock('../../../utils/project', () => ({
   ensureProjectContext: vi.fn(),

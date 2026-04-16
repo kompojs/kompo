@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { cancel, confirm, isCancel, log, note, select, text } from '@clack/prompts'
-import { PORT_DEFINITIONS, readKompoConfig } from '@kompo/kit'
+import { PORT_DEFINITIONS, readKompoConfig } from '@kompojs/kit'
 import color from 'picocolors'
 import { Project, SyntaxKind } from 'ts-morph'
 import { createFsEngine } from '../../../engine/fs-engine'

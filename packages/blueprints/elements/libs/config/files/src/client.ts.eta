@@ -1,6 +1,0 @@
-/**
- * Client-side environment utilities.
- * Each app defines its own env.ts with Zod validation.
- * This module re-exports z for backward compatibility.
- */
-export { z } from '@kompo/config'

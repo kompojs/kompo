@@ -1,415 +1,122 @@
 <div align="center">
   <img src="./packages/assets/kompo.svg" alt="Kompo Logo" width="120" />
-  <p>
-  <strong>Code orchestration for web3.</strong></p>
-  <p><i>Deploy modular adapters. Own your code.</i></p>
+  <h1>@kompojs/core</h1>
+  <p><strong>The core monorepo for the Kompo CLI and runtime packages.</strong></p>
 
   <p>
-    <a href="https://www.npmjs.com/package/@kompo-dev/create-kompo"><img src="https://img.shields.io/npm/v/@kompo-dev/create-kompo?style=flat-square&color=blue" alt="Version" /></a>
+    <a href="https://www.npmjs.com/package/@kompojs/core"><img src="https://img.shields.io/npm/v/@kompojs/core?style=flat-square&color=blue" alt="Version" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License" /></a>
-    <a href="https://twitter.com/kompodev"><img src="https://img.shields.io/badge/twitter-@kompodev-1DA1F2?style=flat-square" alt="Twitter" /></a>
     <a href="https://discord.gg/RcXGwnyEgZ"><img src="https://img.shields.io/badge/discord-join-7289DA?style=flat-square" alt="Discord" /></a>
   </p>
 </div>
 
 ---
 
-## Why Kompo?
+## What is this repo?
 
-Building web3 apps today means **starting from scratch every time**.
+This is the **core monorepo** for [Kompo](https://kompo.dev) — a code orchestration framework for TypeScript, built on Hexagonal Architecture (Ports & Adapters).
 
-You spend **40-60% of your time** on boilerplate:
+This repo contains the CLI, configuration, and runtime packages. Blueprints, the workbench, and the scaffolder live in their own repositories:
 
-- Setting up wallet connections (RainbowKit, SIWE, session management)
-- Configuring indexers (Ponder, The Graph, custom event listeners)
-- Managing RPC providers (Alchemy, Infura, fallbacks)
-- Handling multi-chain logic (contract addresses, chain routing)
-- Generating types from ABIs and schemas
-
-And when you want to switch providers—**you refactor everything**.
-
-**Kompo eliminates the boilerplate while keeping you 100% in control.**
+| Repository | Description |
+|:--|:--|
+| **[kompojs/kompo](https://github.com/kompojs/kompo)** (this repo) | CLI, kit, config, core runtime |
+| [kompojs/blueprints](https://github.com/kompojs/blueprints) | Blueprint packages (starters, adapters, framework templates) |
+| [kompojs/create-kompo](https://github.com/kompojs/create-kompo) | `create-kompo` scaffolder |
+| [kompojs/workbench](https://github.com/kompojs/workbench) | Visual architecture explorer |
 
 ---
 
-## What is Kompo?
+## Packages
 
-A **code orchestration framework** for TypeScript web3 developers.
-
-Built on **Hexagonal Architecture** (Ports & Adapters), Kompo lets you:
-
-- **Declare your stack once** in a single config file.
-- **Deploy modular adapters** directly into your codebase.
-- **Swap providers anytime** without refactoring.
-
-**The Terraform of web3 code.** Declare once, swap providers anytime.
-
-> Think: **Terraform for your application code**, not your infrastructure.
-
-**Infrastructure as Code** democratized cloud deployment. **Code as a Service** democratizes web3 development.
+| Package | npm | Description |
+|:--|:--|:--|
+| `@kompojs/cli` | [![npm](https://img.shields.io/npm/v/@kompojs/cli?style=flat-square)](https://www.npmjs.com/package/@kompojs/cli) | Command-line interface |
+| `@kompojs/kit` | [![npm](https://img.shields.io/npm/v/@kompojs/kit?style=flat-square)](https://www.npmjs.com/package/@kompojs/kit) | Shared utilities and interfaces |
+| `@kompojs/config` | [![npm](https://img.shields.io/npm/v/@kompojs/config?style=flat-square)](https://www.npmjs.com/package/@kompojs/config) | Configuration and constants |
+| `@kompojs/core` | [![npm](https://img.shields.io/npm/v/@kompojs/core?style=flat-square)](https://www.npmjs.com/package/@kompojs/core) | Meta-package (installs CLI + deps) |
 
 ---
 
-## What You Get
+## Quick Start
 
-| ✨ Pre-Built Adapters               | 🎯 Production Patterns          | 🚀 Templates Included        |
-| :---------------------------------- | :------------------------------ | :--------------------------- |
-| **Wallet:** RainbowKit + SIWE       | Type-safe contract interactions | NFT Marketplace              |
-| **Indexing:** Ponder, The Graph     | Multi-chain configuration       | DAO Governance               |
-| **RPC:** Alchemy, Infura, QuickNode | Error handling & retries        | DeFi Dashboard               |
-| **Storage:** Pinata, Arweave        | Rate limiting & caching         | Cross-chain yield aggregator |
-| **Database:** Postgres, Neon        | Session management              |                              |
-
----
-
-## ⚡ Quick Start
-
-### 1. Create a project
-
-```bash
-pnpm create kompo@latest my-awesome-app
-cd my-awesome-app
-```
-
-### 2. Choose your stack (interactive CLI)
-
-```text
-? Select authentication strategy
-  → Wallet + session (SIWE + NextAuth)
-
-? Select indexing provider
-  → Ponder
-
-? Select chains
-  → Ethereum
-  → Polygon
-  → Arbitrum
-
-✓ Stack configured! 5 adapters installed.
-✓ Types generated from ABIs.
-✓ Ready to build.
-```
-
-### 3. Start building
-
-```bash
-pnpm dev
-```
-
-### What you have:
-
-- ✅ Typed multi-chain wallet connection
-- ✅ Smart contract indexing configured
-- ✅ RPC provider setup with fallbacks
-- ✅ Production patterns included
-- ✅ Ready to ship
-
-### Time Saved (Real Numbers)
-
-| Task                   | Manual         | Kompo          |
-| :--------------------- | :------------- | :------------- |
-| Wallet + session setup | 4-6 hours      | **2 minutes**  |
-| Multi-chain config     | 2-4 weeks      | **10 minutes** |
-| Indexer setup          | 3-5 hours      | **5 minutes**  |
-| Type generation        | 2-3 hours      | **30 seconds** |
-| **MVP dApp**           | **8-12 weeks** | **2-3 days**   |
-
----
-
-## 🏛️ Core Architecture
-
-Hexagonal Architecture separates business logic from infrastructure concerns:
-
-```
-┌─────────────────────────────────────┐
-│    Your Core Logic (Pure TS)        │
-│  (business rules, no dependencies)  │
-└──────────────┬──────────────────────┘
-               │
-┌──────────────┴──────────────────────┐
-│  Ports (Interfaces / Contracts)     │
-│  (what your core needs)             │
-└──────────────┬──────────────────────┘
-               │
-┌──────────────┴──────────────────────┐
-│  Adapters (Implementations)         │
-│  (how you get it: Alchemy, Ponder)  │
-└─────────────────────────────────────┘
-```
-
-Change an adapter (e.g., Alchemy → Infura) → **everything else works unchanged**.
-
-### Example: Swap RPC Providers
-
-**Before** (3+ hours of refactoring):
-
-```typescript
-// Old code using Alchemy
-import { Alchemy, Network } from "alchemy-sdk";
-const alchemy = new Alchemy({ apiKey: process.env.ALCHEMY_KEY });
-const balance = await alchemy.core.getBalance(address);
-```
-
-**After** (1 line of config):
-
-```json
-// kompo.config.json
-{
-  "adapters": {
-    "rpc-provider": {
-      "port": "rpc",
-      "engine": "infura"
-    }
-  }
-}
-```
-
-```typescript
-// Your code stays the same
-import { rpc } from "@/composition";
-const balance = await rpc.getBalance(address);
-```
-
----
-
-## 🚀 Use Cases Built With Kompo
-
-### NFT Marketplace (Ethereum + Polygon)
-
-```bash
-pnpm kompo add template nft-marketplace
-```
-
-**Pre-built:** Wallet connection, Contract interaction (mint, list, buy), Multi-chain contract management, Event indexing.
-
-### DAO Governance (Multi-chain)
-
-```bash
-pnpm kompo add template dao
-```
-
-**Pre-built:** Member voting, Proposal execution, Cross-chain quorum, Treasury management.
-
-### DeFi Dashboard (10+ chains)
-
-```bash
-pnpm kompo add template defi-dashboard
-```
-
-**Pre-built:** Token balance aggregation, Swap routing, Staking positions, Cross-chain liquidity.
-
----
-
-## 🗝️ Key Features
-
-### 🚀 Ship Faster
-
-- Pre-configured adapters for wallet auth, indexing, RPC.
-- Multi-chain setup in one file (`kompo.config.json`).
-- CLI scaffolds production patterns in seconds.
-
-### 🔄 Zero Vendor Lock-In
-
-- Change RPC providers with 1 line of config.
-- Swap indexers without touching your code.
-- Add new chains to existing contracts instantly.
-- **Own 100% of your codebase** (it's all in your repo).
-
-### 🎯 Type-Safe End-to-End
-
-- TypeScript types generated from smart contract ABIs.
-- Full autocomplete for contract methods and events.
-- Compile-time validation prevents runtime errors.
-
-### 🛠️ Production-Ready
-
-- Error handling and retry logic included.
-- RPC rate limiting and caching built-in.
-- Server-side signing patterns.
-- OpenTelemetry integration for monitoring.
-
----
-
-## 💻 Tech Stack
-
-- **Framework:** Next.js (extensible to Remix, NestJS, Express)
-- **Runtime:** TypeScript + Node.js
-- **CLI:** Powerful generator for scaffolding and code generation
-- **Architecture:** Hexagonal (Ports & Adapters)
-- **Web3 Libraries:** Viem, RainbowKit, Ponder, Alchemy SDK
-
----
-
-## 🚦 Status: Beta
-
-Kompo is currently in **Beta (v0.1.0)**.
-
-- ✅ Fully functional and used in production
-- ✅ APIs stable and well-documented
-- 🔄 Adding new adapters and templates regularly
-- ⚠️ Expect occasional breaking changes as we move toward v1.0
-
----
-
-## 📖 Getting Started
-
-### 1. Create a project
+### New project
 
 ```bash
 pnpm create kompo@latest my-app
-cd my-app
 ```
 
-### 2. Add an adapter
+### Existing monorepo
 
 ```bash
-# Example: Add a Ponder Indexer
-pnpm kompo add port indexer --domain blockchain
-pnpm kompo add adapter ponder --port indexer --domain blockchain
+# Install
+pnpm add -D @kompojs/core
+
+# Initialize
+pnpm kompo init
+
+# Add your first app
+pnpm kompo add app
 ```
 
-### 3. Wire it up
+### Key commands
 
 ```bash
-# Generates the composition layer
-pnpm kompo wire blockchain --app my-app
-```
-
-### 4. Configuration (`kompo.config.json`)
-
-Kompo uses a central JSON configuration file (`libs/config/kompo.config.json`) to manage your architecture.
-
-```json
-{
-  "project": {
-    "name": "my-app",
-    "org": "acme"
-  },
-  "domains": {
-    "blockchain": {
-      "ports": ["indexer"]
-    }
-  },
-  "adapters": {
-    "indexer-ponder": {
-      "port": "indexer",
-      "engine": "ponder",
-      "path": "libs/adapters/indexer-ponder"
-    }
-  },
-  "apps": {
-    "apps/my-app": {
-      "ports": {
-        "indexer": "indexer-ponder"
-      }
-    }
-  }
-}
-```
-
-### 5. Usage in Your App
-
-Once wired, Kompo generates a type-safe composition layer. You simply import the domain.
-
-```typescript
-// src/app/page.tsx
-// Import the wired domain from the composition layer
-import { blockchain } from '@/composition';
-
-export default async function Dashboard() {
-  // Access your adapters through the domain interface
-  const updates = await blockchain.indexer.getLatestUpdates();
-
-  return (
-    <div>
-      {updates.map(u => <div key={u.id}>{u.hash}</div>)}
-    </div>
-  );
-}
+kompo init                    # Initialize Kompo in an existing monorepo
+kompo add app                 # Add a new application
+kompo add domain <name>       # Add a business domain
+kompo add adapter             # Add an adapter (interactive)
+kompo wire <domain>           # Wire a domain to an app
+kompo doctor                  # Check project health
+kompo list starters           # List available starters
+kompo list blueprints         # List installed blueprint packages
 ```
 
 ---
 
-## 🗺️ Roadmap (Next 90 Days)
+## Development
 
-### ✅ In Progress
+```bash
+# Clone
+git clone https://github.com/kompojs/kompo.git
+cd kompo
 
-- [ ] QuickNode and Ankr RPC adapters
-- [ ] DAO governance template
-- [ ] Enhanced error handling and logging
-- [ ] Security best practices guide
+# Install
+pnpm install
 
-### 📋 Coming Soon (Feb-Mar)
+# Build all packages
+pnpm build
 
-- [ ] Subgraph integration improvements
-- [ ] Cross-chain transaction orchestration helpers
-- [ ] Architecture review credits system
+# Run CLI in dev mode
+pnpm --filter @kompojs/cli kompo <command>
 
-### 🤔 Exploring (Q1 2026)
+# Typecheck
+pnpm --filter @kompojs/cli typecheck
 
-- [ ] AI-assisted code generation
-- [ ] VSCode extension for adapter management
-- [ ] Kompo Cloud for team configuration sharing
-
----
-
-## ❓ FAQ
-
-<details>
-<summary><strong>Is Kompo production-ready?</strong></summary>
-Yes. It's currently used in production by teams building dApps. We're in Beta (v0.1.0) as we refine APIs and add more adapters. Expect to ship to mainnet confidently.
-</details>
-
-<details>
-<summary><strong>How is Kompo different from Scaffold-ETH?</strong></summary>
-Scaffold-ETH is great for learning and quick prototypes. Kompo is built for professional developers building production apps. Kompo focuses on architecture, type safety, and zero vendor lock-in.
-</details>
-
-<details>
-<summary><strong>How is Kompo different from Thirdweb/Moralis?</strong></summary>
-Thirdweb and Moralis are managed platforms (SaaS). You use their APIs and get locked into their services. Kompo is a framework. You own your code, your infrastructure, your choices. You can swap providers anytime.
-</details>
-
-<details>
-<summary><strong>Do I need to use all adapters?</strong></summary>
-No. Kompo is modular. Use what you need, add more later. Start minimal and grow.
-</details>
-
-<details>
-<summary><strong>Can I use Kompo with my existing codebase?</strong></summary>
-Yes. Install <code>@kompo/core</code> and <code>@kompo/nextjs</code> in your Next.js project and start integrating adapters incrementally.
-</details>
+# Run tests
+pnpm test
+```
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions from the community!
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-1.  Fork the repo: `git clone https://github.com/kompo-dev/kompo.git`
-2.  Install dependencies: `pnpm install`
-3.  Create a feature branch: `git checkout -b feature/my-feature`
-4.  Submit a pull request.
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Make your changes and add tests
+4. Submit a pull request
 
-Check out [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+### Community
 
-### Community Channels
-
-- 💬 [Discord Community](https://discord.gg/RcXGwnyEgZ) - Real-time chat and support
-- 🐦 [Twitter](https://twitter.com/kompodev) - Latest updates and announcements
-- 💌 [Email Updates](mailto:support@kompo.dev) - Subscribe for major releases
+- [Documentation](https://kompo.dev/docs)
+- [Discord](https://discord.gg/RcXGwnyEgZ)
+- [Twitter/X](https://x.com/kompojs)
+- [GitHub Discussions](https://github.com/orgs/kompojs/discussions)
 
 ---
 
 ## License
 
 **MIT © 2026 SmarttDev and Kompo contributors**
-
----
-
-<div align="center">
-  <p><strong>Kompo is built by SmarttDev and an amazing community of web3 developers.</strong></p>
-  <p>Ready to stop rebuilding boilerplate?</p>
-  <br />
-  <a href="https://kompo.dev">Get Started →</a> | <a href="https://kompo.dev/docs">Docs →</a> | <a href="https://discord.gg/RcXGwnyEgZ">Discord →</a>
-</div>

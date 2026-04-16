@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { LIBS_DIR, mergeBlueprintCatalog, updateCatalogFromFeatures } from '@kompo/kit'
+import { LIBS_DIR, mergeBlueprintCatalog, updateCatalogFromFeatures } from '@kompojs/kit'
 import { createFsEngine } from '../engine/fs-engine'
 import { getTemplateEngine } from '../utils'
 import { readKompoConfig } from '../utils/config'
@@ -30,8 +30,9 @@ export async function generateKernel(repoRoot: string) {
 
   // 2. Align with latest dependency injection methods (Catalogs)
   try {
-    const { getBlueprintCatalogPath } = await import('@kompo/blueprints')
-    const catalogPath = getBlueprintCatalogPath('libs/kernel')
+    const { createBlueprintRegistry } = await import('@kompojs/blueprints')
+    const kernelRegistry = createBlueprintRegistry(repoRoot)
+    const catalogPath = kernelRegistry.getBlueprintCatalogPath('libs/kernel')
     if (catalogPath) {
       mergeBlueprintCatalog(repoRoot, 'kernel', catalogPath)
       updateCatalogFromFeatures(repoRoot, ['kernel'])
