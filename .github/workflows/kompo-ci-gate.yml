@@ -5,11 +5,13 @@ permissions:
   pull-requests: write
 
 on:
-  merge_group:
-  push:
-    branches: [main]  # Removed staging - PRs to staging trigger CI, push to staging doesn't need separate run
-  pull_request:
-    branches: [main, staging]
+  # Auto-triggers disabled during initial release stabilization.
+  # Re-enable once pipelines are validated.
+  # merge_group:
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main, staging]
   workflow_dispatch:
 
 jobs:

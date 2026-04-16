@@ -4,9 +4,12 @@ name: Kompo Release Prepare
 # Since versioning is done locally, this only generates notes and creates the PR
 
 on:
-  push:
-    branches:
-      - staging
+  # Auto-triggers disabled during initial release stabilization.
+  # Re-enable once pipelines are validated.
+  # push:
+  #   branches:
+  #     - staging
+  workflow_dispatch:
 
 permissions:
   contents: write
