@@ -25,6 +25,7 @@ import { createFsEngine } from '../../../engine/fs-engine'
 import { generateDesignSystem } from '../../../generators/apps/design.generator'
 import { generateFramework } from '../../../generators/apps/framework.generator'
 import { getDesignSystemSelectOptions } from '../../../utils/design-systems'
+import { ensureFrameworkBlueprintInstalled } from '../../../utils/ensure-blueprint'
 import { runFormat, runSort } from '../../../utils/format'
 import { installDependencies } from '../../../utils/install'
 import { findRepoRoot } from '../../../utils/project'
@@ -281,6 +282,21 @@ export async function runAddApp(
 
   if (isBackend) {
     designSystem = designSystem || 'vanilla'
+  }
+
+  // Ensure the framework blueprint package is available before reading its
+  // design systems — prevents an empty-options crash in @clack/prompts when
+  // scaffolding interactively without a template flag.
+  if (!isBackend && framework) {
+    try {
+      await ensureFrameworkBlueprintInstalled(repoRoot, framework as string)
+    } catch (err) {
+      log.warning(
+        color.yellow(
+          `Could not install @kompojs/blueprints-${framework}: ${(err as Error).message}`
+        )
+      )
+    }
   }
 
   if (!designSystem) {
