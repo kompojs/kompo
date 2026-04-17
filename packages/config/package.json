@@ -1,32 +1,38 @@
 {
   "name": "@kompojs/config",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Kompo configuration and environment management",
   "license": "MIT",
   "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./client": {
       "types": "./dist/client.d.ts",
-      "import": "./dist/client.js"
+      "import": "./dist/client.js",
+      "require": "./dist/client.cjs"
     },
     "./server": {
       "types": "./dist/server.d.ts",
-      "import": "./dist/server.js"
+      "import": "./dist/server.js",
+      "require": "./dist/server.cjs"
     },
     "./loader": {
       "types": "./dist/loader.d.ts",
-      "import": "./dist/loader.js"
+      "import": "./dist/loader.js",
+      "require": "./dist/loader.cjs"
     },
     "./constants": {
       "types": "./dist/constants.d.ts",
-      "import": "./dist/constants.js"
+      "import": "./dist/constants.js",
+      "require": "./dist/constants.cjs"
     }
   },
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
