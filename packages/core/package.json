@@ -1,6 +1,6 @@
 {
   "name": "@kompojs/core",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Code Orchestration Framework - Build apps 10x faster",
   "type": "module",
   "bin": {

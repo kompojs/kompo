@@ -1,6 +1,6 @@
 {
   "name": "@kompojs/cli",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Kompo CLI - Web3 Component as a Service",
   "license": "MIT",
   "type": "module",
@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@clack/prompts": "1.0.0-alpha.9",
-    "@kompojs/blueprints": "^0.1.1",
+    "@kompojs/blueprints": "^0.1.2",
     "@kompojs/config": "workspace:*",
     "@kompojs/kit": "workspace:*",
     "cfonts": "^3.3.1",
