@@ -17,12 +17,18 @@ export function createInitCommand(): Command {
       // 1. Detect workspace root
       const workspace = findWorkspaceRoot(cwd)
       if (!workspace) {
-        console.log(color.red('❌ No workspace root found.'))
+        console.log(color.red('\n  ✖ No workspace detected in this directory.'))
         console.log(
           color.dim(
-            'Kompo requires a monorepo with either pnpm-workspace.yaml or package.json#workspaces.'
+            '  Kompo requires a monorepo with pnpm-workspace.yaml or package.json#workspaces.'
           )
         )
+        console.log('')
+        console.log('  To scaffold a brand-new project from scratch:')
+        console.log(`  ${color.cyan('pnpm create kompo')}`)
+        console.log('')
+        console.log('  To add Kompo to an existing monorepo, run from your workspace root:')
+        console.log(`  ${color.cyan('kompo init')}\n`)
         process.exit(1)
       }
 
@@ -115,9 +121,8 @@ export function createInitCommand(): Command {
 
       // 7. Done
       console.log(color.green('\n  ✨ Kompo initialized!\n'))
-      console.log(`  Next steps:`)
-      console.log(`  ${color.cyan(`${pm.name} add -D @kompojs/core`)}  Install Kompo`)
-      console.log(`  ${color.cyan('kompo add app')}                Add your first application`)
+      console.log('  Next steps:')
+      console.log(`  ${color.cyan('kompo add app')}   Add your first application`)
       console.log('')
     })
 

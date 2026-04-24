@@ -12,6 +12,7 @@ import { createInitCommand } from '../commands/init.command'
 import { createListCommand } from '../commands/list.command'
 import { createRemoveCommand } from '../commands/remove.command'
 import { createWireCommand } from '../commands/wire.command'
+import { createWorkbenchCommand } from '../commands/workbench.command'
 import { createPluginRegistry } from '../registries/plugin.registry'
 import { applyHelpTheme, showHeader } from '../styles'
 import { getVersion } from '../utils'
@@ -41,6 +42,7 @@ async function main() {
   program.addCommand(createAiSetupCommand())
   program.addCommand(createAiServeCommand())
   program.addCommand(createAiStatusCommand())
+  program.addCommand(createWorkbenchCommand())
 
   // Apply help theme to all commands
   applyHelpTheme(program)

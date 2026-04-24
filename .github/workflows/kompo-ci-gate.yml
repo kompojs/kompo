@@ -5,13 +5,11 @@ permissions:
   pull-requests: write
 
 on:
-  # Auto-triggers disabled during initial release stabilization.
-  # Re-enable once pipelines are validated.
-  # merge_group:
-  # push:
-  #   branches: [main]
-  # pull_request:
-  #   branches: [main, staging]
+  merge_group:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main, staging]
   workflow_dispatch:
 
 jobs:

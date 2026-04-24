@@ -2,11 +2,9 @@ name: Kompo Release Publish
 run-name: "Publish Flow: ${{ github.ref_name }}"
 
 on:
-  # Auto-triggers disabled during initial release stabilization.
-  # Re-enable once pipelines are validated.
-  # push:
-  #   branches:
-  #     - main
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:

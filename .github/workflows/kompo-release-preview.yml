@@ -1,11 +1,9 @@
 name: Kompo Release Preview
 
 on:
-  # Auto-triggers disabled during initial release stabilization.
-  # Re-enable once pipelines are validated.
-  # push:
-  #   branches:
-  #     - staging
+  push:
+    branches:
+      - staging
   workflow_dispatch:
 
 permissions:

@@ -46,6 +46,13 @@ export interface StepEntry {
   timestamp: string
 }
 
+export interface DevToolsConfig {
+  enabled?: boolean
+  port?: number
+  host?: string
+  autoInject?: boolean
+}
+
 export interface KompoConfig {
   $schema?: string
   version: number
@@ -66,6 +73,7 @@ export interface KompoConfig {
   paths?: {
     composition?: string
   }
+  devtools?: DevToolsConfig
 }
 
 /**

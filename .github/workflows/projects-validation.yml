@@ -8,18 +8,17 @@ permissions:
   pull-requests: write
 
 on:
-  # Auto-triggers disabled during initial release stabilization.
-  # Re-enable once pipelines are validated.
-  # push:
-  #   branches: ["main"]
-  #   paths:
-  #     - 'apps/**'
-  #     - 'libs/**'
-  # pull_request:
-  #   types: [opened, synchronize]
-  #   paths:
-  #     - 'apps/**'
-  #     - 'libs/**'
+  push:
+    branches: ["main", "staging"]
+    paths:
+      - 'apps/**'
+      - 'libs/**'
+  pull_request:
+    types: [opened, synchronize]
+    branches: ["main", "staging"]
+    paths:
+      - 'apps/**'
+      - 'libs/**'
   workflow_dispatch:
 
 jobs:

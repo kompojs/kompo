@@ -57,7 +57,7 @@ export {
   registerDemo,
   registerProvider,
 } from './demos'
-export type { AppConfig, KompoConfig, StepEntry } from './kompo-config'
+export type { AppConfig, DevToolsConfig, KompoConfig, StepEntry } from './kompo-config'
 // Kompo Config utilities
 export {
   addStep,
