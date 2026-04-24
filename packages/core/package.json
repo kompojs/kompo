@@ -13,7 +13,7 @@
     "@kompojs/cli": "workspace:*",
     "@kompojs/kit": "workspace:*",
     "@kompojs/config": "workspace:*",
-    "@kompojs/blueprints": "^0.1.1",
+    "@kompojs/blueprints": "^0.1.2",
     "@kompojs/blueprints-nextjs": "^0.1.0",
     "@kompojs/blueprints-react": "^0.1.1",
     "@kompojs/blueprints-nuxt": "^0.1.1",
