@@ -33,7 +33,9 @@
     "sort": "sort-package-json \"package.json\" \"apps/*/package.json\" \"libs/**/package.json\"",
     "test": "turbo run test",
     "test:e2e": "./scripts/test-e2e.sh",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "version": "changeset version",
+    "release": "turbo run build && changeset publish"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.5",

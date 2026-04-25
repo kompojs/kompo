@@ -1,5 +1,11 @@
 # @kompo/kit
 
+## 0.1.7
+
+### Patch Changes
+
+- @kompojs/config@0.1.7
+
 ## 0.1.3-beta.6
 
 ## 0.1.3-beta.5

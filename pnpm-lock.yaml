@@ -77,8 +77,8 @@ importers:
         specifier: 0.0.1-beta.1
         version: 0.0.1-beta.1
       '@kompojs/blueprints':
-        specifier: ^0.1.1
-        version: 0.1.1(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
+        specifier: ^0.1.2
+        version: 0.1.2(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
       '@kompojs/config':
         specifier: workspace:*
         version: link:../config
@@ -160,23 +160,23 @@ importers:
   packages/core:
     dependencies:
       '@kompojs/blueprints':
-        specifier: ^0.1.1
-        version: 0.1.1(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
+        specifier: ^0.1.2
+        version: 0.1.2(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
       '@kompojs/blueprints-express':
         specifier: ^0.1.0
-        version: 0.1.0(@kompojs/blueprints@0.1.1)
+        version: 0.1.0(@kompojs/blueprints@0.1.2)
       '@kompojs/blueprints-nextjs':
         specifier: ^0.1.0
-        version: 0.1.0(@kompojs/blueprints@0.1.1)
+        version: 0.1.0(@kompojs/blueprints@0.1.2)
       '@kompojs/blueprints-nuxt':
         specifier: ^0.1.1
-        version: 0.1.1(@kompojs/blueprints@0.1.1)
+        version: 0.1.1(@kompojs/blueprints@0.1.2)
       '@kompojs/blueprints-react':
         specifier: ^0.1.1
-        version: 0.1.1(@kompojs/blueprints@0.1.1)
+        version: 0.1.1(@kompojs/blueprints@0.1.2)
       '@kompojs/blueprints-vue':
         specifier: ^0.1.1
-        version: 0.1.1(@kompojs/blueprints@0.1.1)
+        version: 0.1.1(@kompojs/blueprints@0.1.2)
       '@kompojs/cli':
         specifier: workspace:*
         version: link:../cli
@@ -1074,14 +1074,14 @@ packages:
     peerDependencies:
       '@kompojs/blueprints': 0.1.1
 
-  '@kompojs/blueprints@0.1.1':
-    resolution: {integrity: sha512-9m5Qa6iHaNgqUtL9FEjqV3Cwj5Y8QdviDoawJgisxrbkx5S6Xw3rrX12k0or5D24PuNwdXMPZRh60TawGnh7iw==}
+  '@kompojs/blueprints@0.1.2':
+    resolution: {integrity: sha512-IScjk+LE0NPDK6lDYTqFY+G5+rai0qwWOntP6LVAmtIMSyULeX1mmnetsY9I1Zz8yLtU3tzVGRHrFjExU2KVmA==}
     peerDependencies:
       '@kompojs/blueprints-express': 0.1.0
-      '@kompojs/blueprints-nextjs': 0.1.0
-      '@kompojs/blueprints-nuxt': 0.1.1
-      '@kompojs/blueprints-react': 0.1.1
-      '@kompojs/blueprints-vue': 0.1.1
+      '@kompojs/blueprints-nextjs': 0.1.2
+      '@kompojs/blueprints-nuxt': 0.1.2
+      '@kompojs/blueprints-react': 0.1.2
+      '@kompojs/blueprints-vue': 0.1.2
     peerDependenciesMeta:
       '@kompojs/blueprints-express':
         optional: true
@@ -3575,35 +3575,35 @@ snapshots:
       '@upstash/vector': 1.2.3
       picocolors: 1.1.1
 
-  '@kompojs/blueprints-express@0.1.0(@kompojs/blueprints@0.1.1)':
+  '@kompojs/blueprints-express@0.1.0(@kompojs/blueprints@0.1.2)':
     dependencies:
-      '@kompojs/blueprints': 0.1.1(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
+      '@kompojs/blueprints': 0.1.2(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
 
-  '@kompojs/blueprints-nextjs@0.1.0(@kompojs/blueprints@0.1.1)':
+  '@kompojs/blueprints-nextjs@0.1.0(@kompojs/blueprints@0.1.2)':
     dependencies:
-      '@kompojs/blueprints': 0.1.1(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
+      '@kompojs/blueprints': 0.1.2(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
 
-  '@kompojs/blueprints-nuxt@0.1.1(@kompojs/blueprints@0.1.1)':
+  '@kompojs/blueprints-nuxt@0.1.1(@kompojs/blueprints@0.1.2)':
     dependencies:
-      '@kompojs/blueprints': 0.1.1(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
+      '@kompojs/blueprints': 0.1.2(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
 
-  '@kompojs/blueprints-react@0.1.1(@kompojs/blueprints@0.1.1)':
+  '@kompojs/blueprints-react@0.1.1(@kompojs/blueprints@0.1.2)':
     dependencies:
-      '@kompojs/blueprints': 0.1.1(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
+      '@kompojs/blueprints': 0.1.2(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
 
-  '@kompojs/blueprints-vue@0.1.1(@kompojs/blueprints@0.1.1)':
+  '@kompojs/blueprints-vue@0.1.1(@kompojs/blueprints@0.1.2)':
     dependencies:
-      '@kompojs/blueprints': 0.1.1(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
+      '@kompojs/blueprints': 0.1.2(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)
 
-  '@kompojs/blueprints@0.1.1(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)':
+  '@kompojs/blueprints@0.1.2(@kompojs/blueprints-express@0.1.0)(@kompojs/blueprints-nextjs@0.1.0)(@kompojs/blueprints-nuxt@0.1.1)(@kompojs/blueprints-react@0.1.1)(@kompojs/blueprints-vue@0.1.1)':
     dependencies:
       zod: 3.25.76
     optionalDependencies:
-      '@kompojs/blueprints-express': 0.1.0(@kompojs/blueprints@0.1.1)
-      '@kompojs/blueprints-nextjs': 0.1.0(@kompojs/blueprints@0.1.1)
-      '@kompojs/blueprints-nuxt': 0.1.1(@kompojs/blueprints@0.1.1)
-      '@kompojs/blueprints-react': 0.1.1(@kompojs/blueprints@0.1.1)
-      '@kompojs/blueprints-vue': 0.1.1(@kompojs/blueprints@0.1.1)
+      '@kompojs/blueprints-express': 0.1.0(@kompojs/blueprints@0.1.2)
+      '@kompojs/blueprints-nextjs': 0.1.0(@kompojs/blueprints@0.1.2)
+      '@kompojs/blueprints-nuxt': 0.1.1(@kompojs/blueprints@0.1.2)
+      '@kompojs/blueprints-react': 0.1.1(@kompojs/blueprints@0.1.2)
+      '@kompojs/blueprints-vue': 0.1.1(@kompojs/blueprints@0.1.2)
 
   '@manypkg/find-root@1.1.0':
     dependencies:

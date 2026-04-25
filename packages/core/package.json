@@ -1,6 +1,6 @@
 {
   "name": "@kompojs/core",
-  "version": "0.1.2",
+  "version": "0.1.7",
   "description": "Code Orchestration Framework - Build apps 10x faster",
   "type": "module",
   "bin": {
@@ -13,12 +13,12 @@
     "@kompojs/cli": "workspace:*",
     "@kompojs/kit": "workspace:*",
     "@kompojs/config": "workspace:*",
-    "@kompojs/blueprints": "^0.1.2",
-    "@kompojs/blueprints-nextjs": "^0.1.0",
-    "@kompojs/blueprints-react": "^0.1.1",
-    "@kompojs/blueprints-nuxt": "^0.1.1",
-    "@kompojs/blueprints-vue": "^0.1.1",
-    "@kompojs/blueprints-express": "^0.1.0"
+    "@kompojs/blueprints": "^0.1.3",
+    "@kompojs/blueprints-nextjs": "^0.1.3",
+    "@kompojs/blueprints-react": "^0.1.3",
+    "@kompojs/blueprints-nuxt": "^0.1.3",
+    "@kompojs/blueprints-vue": "^0.1.3",
+    "@kompojs/blueprints-express": "^0.1.3"
   },
   "engines": {
     "node": ">=20.0.0"

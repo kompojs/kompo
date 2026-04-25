@@ -1,5 +1,7 @@
 # @kompo/config
 
+## 0.1.7
+
 ## 0.1.3-beta.6
 
 ### Patch Changes
