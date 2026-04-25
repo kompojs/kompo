@@ -235,7 +235,7 @@ export function ensureKompoConfig(repoRoot: string): KompoConfig {
 
 export function detectEnabledFrameworks(repoRoot: string): FrameworkId[] {
   const config = readKompoConfig(repoRoot)
-  if (!config || !config.apps) return []
+  if (!config?.apps) return []
 
   const frameworks = new Set<FrameworkId>()
   Object.values(config.apps).forEach((app) => {
@@ -250,7 +250,7 @@ export function detectEnabledFrameworks(repoRoot: string): FrameworkId[] {
 // Default: Return all enabled frameworks (shared behavior)
 export function getFrameworksForTarget(repoRoot: string, targetApp?: string): FrameworkId[] {
   const config = readKompoConfig(repoRoot)
-  if (!config || !config.apps) return []
+  if (!config?.apps) return []
 
   // If a specific target app is provided, try to find its framework
   if (targetApp) {

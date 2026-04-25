@@ -12,7 +12,7 @@ import { createFsEngine } from '../engine/fs-engine'
  * @param envEntry - Alternatively provide the raw env string content to inject
  */
 export async function injectEnvVariables(repoRoot: string, envEntry: string) {
-  if (!envEntry || !envEntry.trim()) return
+  if (!envEntry?.trim()) return
 
   const fs = createFsEngine()
   const envPath = path.join(repoRoot, '.env')

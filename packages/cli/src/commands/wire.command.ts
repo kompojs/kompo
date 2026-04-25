@@ -29,7 +29,7 @@ export async function runWire(
   const { repoRoot, config } = await ensureProjectContext(cwd)
 
   // Check if domain exists in config
-  if (!config.domains || !config.domains[domainName]) {
+  if (!config.domains?.[domainName]) {
     log.error(color.red(`✗ Domain ${domainName} not found in kompo.config.json`))
     process.exit(1)
   }

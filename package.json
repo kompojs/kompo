@@ -38,7 +38,7 @@
     "release": "turbo run build && changeset publish"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.5",
+    "@biomejs/biome": "^2.4.13",
     "@changesets/cli": "^2.29.8",
     "@commitlint/cli": "^20.3.1",
     "@commitlint/config-conventional": "^20.3.1",

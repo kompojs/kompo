@@ -117,7 +117,6 @@ function buildExecCommand(pm: PackageManagerName, bin: string, args: string[] = 
       return ['yarn', 'dlx', bin, ...args]
     case 'bun':
       return ['bunx', bin, ...args]
-    case 'pnpm':
     default:
       return ['pnpm', 'exec', bin, ...args]
   }

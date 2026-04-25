@@ -160,7 +160,7 @@ export function createAiServeCommand(): Command {
 
   // Default action (no subcommand) → start
   cmd.action(async () => {
-    await cmd.commands.find((c) => c.name() === 'start')!.parseAsync([], { from: 'user' })
+    await cmd.commands.find((c) => c.name() === 'start')?.parseAsync([], { from: 'user' })
   })
 
   return cmd

@@ -144,7 +144,7 @@ export const crossPackageVersionsCheck: DoctorCheck = {
 
         for (const pkgName of KOMPO_PACKAGES) {
           const spec = allDeps[pkgName]
-          if (spec && spec.startsWith('workspace:')) {
+          if (spec?.startsWith('workspace:')) {
             results.push({
               status: 'info',
               message: `${pkgName} is linked via workspace protocol (${spec})`,

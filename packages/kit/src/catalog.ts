@@ -9,7 +9,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { gt, clean as semverClean } from 'semver'
-import { parse, stringify } from 'yaml'
+import { parse } from 'yaml'
 
 export interface CatalogEntry {
   [key: string]: string
@@ -293,7 +293,7 @@ export function getCatalogEntriesForFeatures(rootDir: string, features: string[]
  * This is the sole source of truth for ALL package managers.
  */
 export function updateCatalogFromFeatures(rootDir: string, features: string[]): void {
-  const newEntries = getCatalogEntriesForFeatures(rootDir, features)
+  const _newEntries = getCatalogEntriesForFeatures(rootDir, features)
 
   // Read existing kompo catalog
   const catalogPath = getKompoCatalogPath(rootDir)

@@ -9,7 +9,7 @@ registerDoctorCheck({
     const issues: DoctorCheckResult[] = []
     const config = readKompoConfig(repoRoot)
 
-    if (!config || !config.domains) return [{ status: 'ok' }]
+    if (!config?.domains) return [{ status: 'ok' }]
 
     // Collect all implemented ports from adapters
     const implementedPorts = new Set<string>()

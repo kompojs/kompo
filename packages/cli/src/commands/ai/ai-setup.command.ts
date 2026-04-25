@@ -109,7 +109,7 @@ export function createAiSetupCommand(): Command {
         const email = await p.text({
           message: 'Your email:',
           validate: (v) => {
-            if (!v || !v.includes('@')) return 'Please enter a valid email'
+            if (!v?.includes('@')) return 'Please enter a valid email'
           },
         })
         if (p.isCancel(email)) {
@@ -203,7 +203,7 @@ async function installModel(tier: ModelTier): Promise<void> {
 function saveStarterLicence(): void {
   ensureKompoDir()
   const licence: LicenceData = {
-    licenceKey: 'starter-' + Date.now().toString(36),
+    licenceKey: `starter-${Date.now().toString(36)}`,
     email: '',
     plan: 'starter',
     createdAt: new Date().toISOString(),

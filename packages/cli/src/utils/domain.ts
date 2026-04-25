@@ -9,7 +9,7 @@ export async function syncDomainIndex(repoRoot: string, domainName: string) {
   const templates = await getTemplateEngine()
   const config = readKompoConfig(repoRoot)
 
-  if (!config || !config.domains || !config.domains[domainName]) {
+  if (!config?.domains?.[domainName]) {
     return
   }
 
