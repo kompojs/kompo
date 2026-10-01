@@ -1,5 +1,20 @@
+# Kompo
+
+> ⚠️ Kompo is no longer maintained.
+
+## Project status
+
+Kompo was discontinued in October 2026.
+
+This project is no longer actively maintained. No new features,
+bug fixes, or support should be expected.
+
+The repository remains available for archival and reference purposes.
+
+
+---
+
 <div align="center">
-  <img src="./packages/assets/kompo.svg" alt="Kompo Logo" width="120" />
   <h1>@kompojs/core</h1>
   <p><strong>The core monorepo for the Kompo CLI and runtime packages.</strong></p>
 
