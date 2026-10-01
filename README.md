@@ -1,16 +1,14 @@
-# Kompo
+# ⚠️ Kompo is no longer maintained
 
-> ⚠️ Kompo is no longer maintained.
+**Kompo has been discontinued and is no longer actively maintained.**
 
-## Project status
+The repository is kept available for archival and reference purposes, but no new features, bug fixes, or support should be expected.
 
-Kompo was discontinued in October 2026.
+Thank you to everyone who contributed, tested, reported issues, or used Kompo.
 
-This project is no longer actively maintained. No new features,
-bug fixes, or support should be expected.
-
-The repository remains available for archival and reference purposes.
-
+**Status:** Archived  
+**Maintenance:** Discontinued  
+**Date:** October 2026
 
 ---
 
